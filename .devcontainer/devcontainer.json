@@ -1,0 +1,31 @@
+{
+  "name": "Android Blokknote",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17",
+      "installMaven": false,
+      "installGradle": false
+    },
+    "ghcr.io/devcontainers/features/common-utils:2": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "mathiasfrohlich.Kotlin",
+        "naco-siren.gradle-language",
+        "vscjava.vscode-gradle",
+        "ms-vscode.makefile-tools",
+        "VisualStudioExptTeam.vscodeintellicode"
+      ]
+    }
+  },
+  "containerEnv": {
+    "ANDROID_HOME": "/usr/local/android-sdk",
+    "ANDROID_SDK_ROOT": "/usr/local/android-sdk",
+    "GRADLE_HOME": "/opt/gradle",
+    "KOTLIN_HOME": "/opt/kotlin"
+  },
+  "postCreateCommand": "set -e && sudo apt-get update && sudo apt-get install -y wget unzip libncurses5 lib32stdc++6 lib32z1 && \\\n# Install Gradle 8.5\nwget https://services.gradle.org/distributions/gradle-8.5-bin.zip -O /tmp/gradle.zip && \\\nsudo mkdir -p /opt/gradle && \\\nsudo unzip -d /opt/gradle /tmp/gradle.zip && \\\nsudo ln -s /opt/gradle/gradle-8.5/bin/gradle /usr/local/bin/gradle && \\\n# Install Kotlin 1.9\nwget https://github.com/JetBrains/kotlin/releases/download/v1.9.0/kotlin-compiler-1.9.0.zip -O /tmp/kotlin.zip && \\\nsudo mkdir -p /opt/kotlin && \\\nsudo unzip -d /opt/kotlin /tmp/kotlin.zip && \\\nsudo ln -s /opt/kotlin/kotlinc/bin/kotlinc /usr/local/bin/kotlinc && \\\nsudo ln -s /opt/kotlin/kotlinc/bin/kotlin /usr/local/bin/kotlin && \\\n# Install Android SDK\necho 'Installing Android SDK...' && \\\nmkdir -p ${ANDROID_HOME}/cmdline-tools && \\\nwget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdline-tools.zip && \\\nunzip /tmp/cmdline-tools.zip -d ${ANDROID_HOME}/cmdline-tools && \\\nmv ${ANDROID_HOME}/cmdline-tools/cmdline-tools ${ANDROID_HOME}/cmdline-tools/latest && \\\nyes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses && \\\n${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager \"platform-tools\" \"platforms;android-34\" \"build-tools;34.0.0\" && \\\necho 'export PATH=$PATH:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/cmdline-tools/latest/bin:/opt/gradle/gradle-8.5/bin:/opt/kotlin/kotlinc/bin' >> ~/.bashrc && \\\necho 'Done.'"
+}
