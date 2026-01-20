@@ -2,6 +2,7 @@ package space.blokknote.utils
 
 import android.content.Context
 import android.media.MediaPlayer
+import java.util.concurrent.ConcurrentLinkedQueue
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -9,57 +10,53 @@ import javax.inject.Singleton
 class SoundManager @Inject constructor(
     private val context: Context
 ) {
-    private var typingPlayer: MediaPlayer? = null
-    private var erasePlayer: MediaPlayer? = null
-    private var downloadPlayer: MediaPlayer? = null
-    private var langPlayer: MediaPlayer? = null
-
-    init {
-        initializePlayers()
-    }
-
-    private fun initializePlayers() {
-        typingPlayer = MediaPlayer.create(context, R.raw.typing)
-        erasePlayer = MediaPlayer.create(context, R.raw.erase)
-        downloadPlayer = MediaPlayer.create(context, R.raw.download)
-        langPlayer = MediaPlayer.create(context, R.raw.lang)
-    }
+    private val playerPool = ConcurrentLinkedQueue<MediaPlayer>()
 
     fun playTyping() {
-        playSound(typingPlayer)
+        playSound(R.raw.typing)
     }
 
     fun playErase() {
-        playSound(erasePlayer)
+        playSound(R.raw.erase)
     }
 
     fun playDownload() {
-        playSound(downloadPlayer)
+        playSound(R.raw.download)
     }
 
     fun playLang() {
-        playSound(langPlayer)
+        playSound(R.raw.lang)
     }
 
-    private fun playSound(player: MediaPlayer?) {
-        player?.let {
-            if (it.isPlaying) {
-                it.seekTo(0)
-            } else {
-                it.start()
+    private fun playSound(resId: Int) {
+        try {
+            val player = MediaPlayer.create(context, resId)
+            
+            if (player != null) {
+                playerPool.add(player)
+                
+                player.setOnCompletionListener { mp ->
+                    mp.release()
+                    playerPool.remove(mp)
+                }
+                
+                player.start()
             }
+        } catch (e: Exception) {
         }
     }
 
     fun release() {
-        typingPlayer?.release()
-        erasePlayer?.release()
-        downloadPlayer?.release()
-        langPlayer?.release()
-        
-        typingPlayer = null
-        erasePlayer = null
-        downloadPlayer = null
-        langPlayer = null
+        while (playerPool.isNotEmpty()) {
+            val player = playerPool.poll()
+            try {
+                if (player?.isPlaying == true) {
+                    player.stop()
+                }
+                player?.release()
+            } catch (e: Exception) {
+            }
+        }
+        playerPool.clear()
     }
 }
