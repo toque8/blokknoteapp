@@ -1,75 +1,35 @@
-name: Build APK
+name: Simple APK Build
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [ main, master ]
+on: workflow_dispatch
 
 jobs:
   build:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Auto-create Gradle files if missing
-      run: |
-        if [ ! -f "gradlew" ]; then
-          echo "Gradle wrapper not found, downloading..."
-          wget https://github.com/gradle/gradle/releases/download/v8.5/gradle-8.5-bin.zip -P /tmp
-          unzip /tmp/gradle-8.5-bin.zip -d /opt/
-          /opt/gradle-8.5/bin/gradle wrapper --gradle-version=8.5
-          chmod +x gradlew
-        fi
-        
-        if [ ! -f "settings.gradle.kts" ]; then
-          echo 'include(":app")' > settings.gradle.kts
-        fi
-        
-        if [ ! -f "build.gradle.kts" ]; then
-          cat > build.gradle.kts << 'EOF'
-          plugins {
-              id("com.android.application") version "8.1.4" apply false
-              id("org.jetbrains.kotlin.android") version "1.9.0" apply false
-          }
-          
-          tasks.register("clean", Delete::class) {
-              delete(rootProject.buildDir)
-          }
-          EOF
-        fi
-    
+    - uses: actions/checkout@v4
+      
+    - name: Setup Android
+      uses: android-actions/setup-android@v3
+      
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
-        distribution: 'temurin'
         java-version: '17'
-    
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-    
-    - name: Make gradlew executable
-      run: chmod +x gradlew || true
-    
+        distribution: 'temurin'
+        
+    - name: Install Gradle
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gradle
+        
     - name: Build APK
       run: |
-        if [ -f "gradlew" ]; then
-          ./gradlew :app:assembleDebug --stacktrace --no-daemon
-        else
-          # Пробуем использовать системный gradle
-          gradle :app:assembleDebug --stacktrace --no-daemon || {
-            echo "Falling back to direct Gradle download..."
-            wget https://services.gradle.org/distributions/gradle-8.5-bin.zip -P /tmp
-            unzip /tmp/gradle-8.5-bin.zip -d /opt/
-            /opt/gradle-8.5/bin/gradle :app:assembleDebug --stacktrace --no-daemon
-          }
-        fi
-    
-    - name: Upload APK artifact
+        gradle --version
+        gradle :app:assembleDebug --stacktrace --no-daemon
+        
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
+        name: app-debug-apk
         path: app/build/outputs/apk/debug/*.apk
-        if-no-files-found: error
-        retention-days: 7
