@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         if (isGranted) {
             exportToDoc()
         } else {
-            Toast.makeText(this, "Разрешение необходимо для сохранения файлов", Toast.LENGTH_LONG).show()
+            showToast("permission_required")
         }
     }
 
@@ -126,6 +126,9 @@ class MainActivity : AppCompatActivity() {
         editor.isFocusableInTouchMode = true
         editor.requestFocus()
 
+        // Тройная защита отступов
+        applyEditorPadding()
+
         editor.setOnTextChangeListener { html ->
             soundManager.playTyping()
             saveToHistory(html)
@@ -145,6 +148,35 @@ class MainActivity : AppCompatActivity() {
                 e.printStackTrace()
             }
         }
+    }
+
+    private fun applyEditorPadding() {
+        // Метод 1: CSS через JavaScript (надежный)
+        val paddingCss = """
+            document.body {
+                padding: 24px !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+            }
+        """.trimIndent()
+        editor.evaluateJavascript(paddingCss, null)
+        
+        // Метод 2: Встроенные методы RichEditor (если доступны)
+        try {
+            editor.setPadding(24, 24, 24, 24)
+        } catch (e: Exception) {
+            // Игнорируем, если метод недоступен
+        }
+        
+        // Метод 3: Дополнительный CSS для контейнера
+        val containerCss = """
+            (function() {
+                var style = document.createElement('style');
+                style.textContent = 'body { padding-left: 24px; padding-right: 24px; padding-top: 24px; padding-bottom: 24px; }';
+                document.head.appendChild(style);
+            })();
+        """.trimIndent()
+        editor.evaluateJavascript(containerCss, null)
     }
 
     private fun setupListeners() {
@@ -286,13 +318,13 @@ class MainActivity : AppCompatActivity() {
     private fun exportToDoc() {
         val htmlContent = editor.html
         if (TextUtils.isEmpty(htmlContent)) {
-            Toast.makeText(this, "Добавьте текст", Toast.LENGTH_SHORT).show()
+            showToast("add_text")
             return
         }
 
-        val content = android.text.Html.fromHtml(htmlContent, android.text.Html.FROM_HTML_MODE_COMPACT).toString().trim()
+        val content = android.text.Html.fromHtml(htmlContent, android.text.Html.FROM_HTML_MODE_COMPACT).toString().trim { it <= ' ' }
         if (content.isEmpty()) {
-            Toast.makeText(this, "Добавьте текст", Toast.LENGTH_SHORT).show()
+            showToast("add_text")
             return
         }
 
@@ -325,13 +357,13 @@ class MainActivity : AppCompatActivity() {
                 showDownloadResult(uri, fileName)
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Ошибка сохранения: ${e.message}", Toast.LENGTH_SHORT).show()
+            showToast("save_error")
             e.printStackTrace()
         }
     }
 
     private fun showDownloadResult(uri: Uri, fileName: String) {
-        Toast.makeText(this, "Файл сохранён: $fileName", Toast.LENGTH_LONG).show()
+        showToast("file_saved" + fileName)
 
         try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -339,35 +371,48 @@ class MainActivity : AppCompatActivity() {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            startActivity(Intent.createChooser(intent, "Открыть"))
+            startActivity(Intent.createChooser(intent, if (currentLanguage == "ru") "Открыть" else "Open"))
         } catch (e: Exception) {
-            Toast.makeText(this, "Файл сохранён в папке Downloads", Toast.LENGTH_SHORT).show()
+            showToast("file_saved_fallback")
         }
     }
 
     private fun shareNote() {
         val htmlContent = editor.html
         if (TextUtils.isEmpty(htmlContent)) {
-            Toast.makeText(this, "Добавьте текст", Toast.LENGTH_SHORT).show()
+            showToast("add_text")
             return
         }
 
         val textContent = android.text.Html.fromHtml(
             htmlContent,
             android.text.Html.FROM_HTML_MODE_COMPACT
-        ).toString().trim()
+        ).toString().trim { it <= ' ' }
 
         if (textContent.isEmpty()) {
-            Toast.makeText(this, "Добавьте текст", Toast.LENGTH_SHORT).show()
+            showToast("add_text")
             return
         }
 
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, textContent)
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         }
 
-        startActivity(Intent.createChooser(shareIntent, "Поделиться"))
+        startActivity(Intent.createChooser(shareIntent, if (currentLanguage == "ru") "Поделиться" else "Share"))
+    }
+
+    private fun showToast(key: String) {
+        val message = when (key) {
+            "add_text" -> if (currentLanguage == "ru") "Добавьте текст" else "Add text"
+            "file_saved" -> if (currentLanguage == "ru") "Файл сохранён: " else "File saved: "
+            "file_saved_fallback" -> if (currentLanguage == "ru") "Файл сохранён в папке Downloads" else "File saved to Downloads folder"
+            "save_error" -> if (currentLanguage == "ru") "Ошибка сохранения" else "Save error"
+            "permission_required" -> if (currentLanguage == "ru") "Разрешение необходимо для сохранения файлов" else "Permission required to save files"
+            else -> key
+        }
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     override fun onPause() {
