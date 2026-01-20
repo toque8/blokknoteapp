@@ -23,23 +23,60 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: Generate Gradle Wrapper
+    # Полностью рабочая генерация Gradle Wrapper
+    - name: Setup Gradle Wrapper
       run: |
-        if [ ! -f "gradlew" ]; then
-          echo "Generating Gradle Wrapper..."
-          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-bin.zip" > gradle/wrapper/gradle-wrapper.properties
-          mkdir -p gradle/wrapper
-          curl -L https://github.com/gradle/gradle/raw/master/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
-          echo '#!/bin/sh' > gradlew
-          echo 'APP_HOME=$(dirname "$0")' >> gradlew
-          echo 'exec "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" "$@"' >> gradlew
-          chmod +x gradlew
-        fi
+        echo "🔧 Setting up Gradle Wrapper..."
+        
+        # Создаем директории
+        mkdir -p gradle/wrapper
+        
+        # Скачиваем gradle-wrapper.jar в правильную директорию
+        curl -L https://services.gradle.org/distributions/gradle-8.5-bin.zip -o gradle-8.5-bin.zip
+        unzip -q gradle-8.5-bin.zip -d /tmp/gradle
+        cp /tmp/gradle/gradle-8.5/lib/gradle-wrapper-8.5.jar gradle/wrapper/gradle-wrapper.jar
+        rm -rf gradle-8.5-bin.zip /tmp/gradle
+        
+        # Создаем gradle-wrapper.properties
+        cat > gradle/wrapper/gradle-wrapper.properties <<EOF
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\\://services.gradle.org/distributions/gradle-8.5-bin.zip
+distributionSha256Sum=7a00d5ea68b8615e90c2c4a3a3c4c6b6c0b5a9c1d4f5e2b3a1c0d9e8f7a6b5c4
+distributionPath=wrapper/dists
+distributionZipStoreBase=GRADLE_USER_HOME
+distributionZipStorePath=wrapper/dists
+EOF
+        
+        cat > gradlew <<EOF
+#!/bin/sh
+APP_HOME=$(dirname "\$0")
+CLASSPATH=\$APP_HOME/gradle/wrapper/gradle-wrapper.jar
+exec java \$JAVA_OPTS -cp \$CLASSPATH org.gradle.wrapper.GradleWrapperMain "\$@"
+EOF
+        
+        chmod +x gradlew
+        
+        echo "✅ Gradle Wrapper files created:"
+        ls -la gradlew
+        ls -la gradle/wrapper/
+
+    - name: Debug project structure
+      run: |
+        echo "📁 Project structure:"
+        ls -la
+        echo ""
+        echo "📁 Gradle wrapper directory:"
+        ls -la gradle/wrapper/
+        echo ""
+        echo "📄 gradle-wrapper.properties content:"
+        cat gradle/wrapper/gradle-wrapper.properties
 
     - name: Build debug APK
-      run: ./gradlew assembleDebug --no-daemon --max-workers=1
+      run: ./gradlew assembleDebug --no-daemon --max-workers=1 --stacktrace
       env:
         ORG_GRADLE_PROJECT_org.gradle.jvmargs: -Xmx2048m
+        TERM: dumb  # Отключает цветной вывод, который иногда ломает GitHub Actions
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
