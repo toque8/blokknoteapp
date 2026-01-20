@@ -1,4 +1,4 @@
-name: Build Debug APK
+name: Build APK
 
 on:
   workflow_dispatch:
@@ -13,6 +13,33 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Auto-create Gradle files if missing
+      run: |
+        if [ ! -f "gradlew" ]; then
+          echo "Gradle wrapper not found, downloading..."
+          wget https://github.com/gradle/gradle/releases/download/v8.5/gradle-8.5-bin.zip -P /tmp
+          unzip /tmp/gradle-8.5-bin.zip -d /opt/
+          /opt/gradle-8.5/bin/gradle wrapper --gradle-version=8.5
+          chmod +x gradlew
+        fi
+        
+        if [ ! -f "settings.gradle.kts" ]; then
+          echo 'include(":app")' > settings.gradle.kts
+        fi
+        
+        if [ ! -f "build.gradle.kts" ]; then
+          cat > build.gradle.kts << 'EOF'
+          plugins {
+              id("com.android.application") version "8.1.4" apply false
+              id("org.jetbrains.kotlin.android") version "1.9.0" apply false
+          }
+          
+          tasks.register("clean", Delete::class) {
+              delete(rootProject.buildDir)
+          }
+          EOF
+        fi
+    
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
@@ -22,59 +49,27 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
     
-    - name: Setup Gradle
+    - name: Make gradlew executable
+      run: chmod +x gradlew || true
+    
+    - name: Build APK
       run: |
-        wget https://services.gradle.org/distributions/gradle-8.5-bin.zip -P /tmp
-        unzip -d /opt/gradle /tmp/gradle-*.zip
-        echo "GRADLE_HOME=/opt/gradle/gradle-8.5" >> $GITHUB_ENV
-        echo "/opt/gradle/gradle-8.5/bin" >> $GITHUB_PATH
-        
-        if [ ! -f "settings.gradle.kts" ]; then
-          echo "rootProject.name = \"BlokkNote\"" > settings.gradle.kts
-          echo "include(\":app\")" >> settings.gradle.kts
-        fi
-        
-        if [ ! -f "build.gradle.kts" ]; then
-          cat > build.gradle.kts << 'EOF'
-          // Top-level build file where you can add configuration options common to all sub-projects/modules.
-          plugins {
-              id("com.android.application") version "8.1.4" apply false
-              id("org.jetbrains.kotlin.android") version "1.9.0" apply false
-              id("com.google.dagger.hilt.android") version "2.48" apply false
+        if [ -f "gradlew" ]; then
+          ./gradlew :app:assembleDebug --stacktrace --no-daemon
+        else
+          # Пробуем использовать системный gradle
+          gradle :app:assembleDebug --stacktrace --no-daemon || {
+            echo "Falling back to direct Gradle download..."
+            wget https://services.gradle.org/distributions/gradle-8.5-bin.zip -P /tmp
+            unzip /tmp/gradle-8.5-bin.zip -d /opt/
+            /opt/gradle-8.5/bin/gradle :app:assembleDebug --stacktrace --no-daemon
           }
-          
-          tasks.register("clean", Delete::class) {
-              delete(rootProject.buildDir)
-          }
-          EOF
-        fi
-        
-        if [ ! -f "app/build.gradle.kts" ]; then
-          echo "Ошибка: Нет app/build.gradle.kts файла!" >&2
-          exit 1
         fi
     
-    - name: Grant permissions
-      run: |
-        # Даем права на исполнение всем скриптам
-        chmod -R +x . || true
-    
-    - name: Build APK with Gradle
-      run: |
-        # Собираем APK напрямую через Gradle
-        gradle --version
-        gradle :app:assembleDebug --stacktrace --no-daemon
-      env:
-        ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-        JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.10-7/x64
-    
-    - name: Find and Upload APK
+    - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug-apk
-        path: |
-          **/build/outputs/apk/**/*.apk
-          **/build/outputs/**/*.apk
-          app/build/outputs/**/*.apk
-        if-no-files-found: warn
+        name: app-debug
+        path: app/build/outputs/apk/debug/*.apk
+        if-no-files-found: error
         retention-days: 7
