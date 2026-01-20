@@ -8,7 +8,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import space.blokknote.data.AppDatabase
 import space.blokknote.data.NoteDao
-import space.blokknote.data.NoteRepository
 import space.blokknote.utils.SoundManager
 import javax.inject.Singleton
 
@@ -25,12 +24,6 @@ object AppModule {
     @Singleton
     fun provideNoteDao(database: AppDatabase): NoteDao {
         return database.noteDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideNoteRepository(noteDao: NoteDao): NoteRepository {
-        return NoteRepository(noteDao)
     }
 
     @Provides
