@@ -3,6 +3,12 @@
     <string name="app_name">Blokknote</string>
     <string name="hint_text">Пиши…</string>
     <string name="hint_text_en">Typing…</string>
+    <string name="file_saved">Файл сохранён: %s</string>
+    <string name="file_save_error">Не удалось сохранить файл</string>
+    <string name="empty_note">Заметка пуста</string>
+    <string name="confirm_clear">Очистить заметку?</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
     <string name="clear">Очистить</string>
     <string name="download">Скачать</string>
     <string name="share">Поделиться</string>
@@ -19,12 +25,6 @@
     <string name="error">Ошибка</string>
     <string name="share_subject">Заметка из Blokknote</string>
     <string name="share_chooser">Поделиться заметкой</string>
-    <string name="file_saved">Файл сохранен: %s</string>
-    <string name="file_save_error">Не удалось сохранить файл</string>
-    <string name="empty_note">Заметка пуста</string>
-    <string name="confirm_clear">Очистить заметку?</string>
-    <string name="yes">Да</string>
-    <string name="no">Нет</string>
     <string name="font_courier">Courier New</string>
     <string name="font_consolas">Consolas</string>
     <string name="font_lucida">Lucida Console</string>
