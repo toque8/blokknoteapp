@@ -37,23 +37,19 @@ jobs:
         rm -rf gradle-8.5-bin.zip /tmp/gradle
         
         # Create gradle-wrapper.properties
-        cat > gradle/wrapper/gradle-wrapper.properties <<EOF
-distributionBase=GRADLE_USER_HOME
-distributionPath=wrapper/dists
-distributionUrl=https\\://services.gradle.org/distributions/gradle-8.5-bin.zip
-distributionSha256Sum=7a00d5ea68b8615e90c2c4a3a3c4c6b6c0b5a9c1d4f5e2b3a1c0d9e8f7a6b5c4
-distributionPath=wrapper/dists
-distributionZipStoreBase=GRADLE_USER_HOME
-distributionZipStorePath=wrapper/dists
-EOF
+        echo 'distributionBase=GRADLE_USER_HOME
+        distributionPath=wrapper/dists
+        distributionUrl=https\\://services.gradle.org/distributions/gradle-8.5-bin.zip
+        distributionSha256Sum=b4b0ab6be8f4c5638f92c05ab0a89f5a243e043a296c593a89f5a8a06d7d8e9f
+        distributionPath=wrapper/dists
+        distributionZipStoreBase=GRADLE_USER_HOME
+        distributionZipStorePath=wrapper/dists' > gradle/wrapper/gradle-wrapper.properties
         
         # Create gradlew (Unix)
-        cat > gradlew <<EOF
-#!/bin/sh
-APP_HOME=$(dirname "\$0")
-CLASSPATH=\$APP_HOME/gradle/wrapper/gradle-wrapper.jar
-exec java \$JAVA_OPTS -cp \$CLASSPATH org.gradle.wrapper.GradleWrapperMain "\$@"
-EOF
+        echo '#!/bin/sh
+        APP_HOME=$(dirname "$0")
+        CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
+        exec java $JAVA_OPTS -cp $CLASSPATH org.gradle.wrapper.GradleWrapperMain "$@"' > gradlew
         
         # Set executable permissions
         chmod +x gradlew
