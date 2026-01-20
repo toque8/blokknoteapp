@@ -126,8 +126,20 @@ class MainActivity : AppCompatActivity() {
         editor.isFocusableInTouchMode = true
         editor.requestFocus()
 
-        // Тройная защита отступов
-        applyEditorPadding()
+        val bgHex = String.format("#%06X", 0xFFFFFF and backgroundColor)
+        val textHex = String.format("#%06X", 0xFFFFFF and fontColor)
+        
+        val css = """
+            document.body {
+                background-color: '$bgHex' !important;
+                color: '$textHex' !important;
+                padding: 24px !important;
+                margin: 0 !important;
+                font-size: 17px !important;
+            }
+        """.trimIndent()
+        
+        editor.evaluateJavascript("javascript:(function() { var style = document.createElement('style'); style.textContent = `$css`; document.head.appendChild(style); })();", null)
 
         editor.setOnTextChangeListener { html ->
             soundManager.playTyping()
@@ -148,35 +160,6 @@ class MainActivity : AppCompatActivity() {
                 e.printStackTrace()
             }
         }
-    }
-
-    private fun applyEditorPadding() {
-        // Метод 1: CSS через JavaScript (надежный)
-        val paddingCss = """
-            document.body {
-                padding: 24px !important;
-                margin: 0 !important;
-                box-sizing: border-box !important;
-            }
-        """.trimIndent()
-        editor.evaluateJavascript(paddingCss, null)
-        
-        // Метод 2: Встроенные методы RichEditor (если доступны)
-        try {
-            editor.setPadding(24, 24, 24, 24)
-        } catch (e: Exception) {
-            // Игнорируем, если метод недоступен
-        }
-        
-        // Метод 3: Дополнительный CSS для контейнера
-        val containerCss = """
-            (function() {
-                var style = document.createElement('style');
-                style.textContent = 'body { padding-left: 24px; padding-right: 24px; padding-top: 24px; padding-bottom: 24px; }';
-                document.head.appendChild(style);
-            })();
-        """.trimIndent()
-        editor.evaluateJavascript(containerCss, null)
     }
 
     private fun setupListeners() {
