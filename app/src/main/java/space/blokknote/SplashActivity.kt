@@ -1,6 +1,7 @@
 package space.blokknote
 
 import android.content.Intent
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -8,6 +9,7 @@ import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 
 class SplashActivity : AppCompatActivity() {
     
@@ -22,6 +24,17 @@ class SplashActivity : AppCompatActivity() {
         setContentView(R.layout.activity_splash)
         
         val splashIcon = findViewById<ImageView>(R.id.splash_icon)
+        
+        val isDarkTheme = (resources.configuration.uiMode and 0x30) == 0x20
+        
+        val tintColor = if (isDarkTheme) {
+            ContextCompat.getColor(this, R.color.white) // Светлый карандаш в темной теме
+        } else {
+            ContextCompat.getColor(this, R.color.primary) // Темный карандаш в светлой теме
+        }
+        
+        splashIcon.setColorFilter(tintColor, PorterDuff.Mode.SRC_IN)
+        
         val rotateAnimation = AnimationUtils.loadAnimation(this, R.anim.rotate_forever)
         splashIcon.startAnimation(rotateAnimation)
         
