@@ -2,8 +2,8 @@ name: Build Debug APK
 
 on:
   push:
-    branches: [ main ]  
-  workflow_dispatch:   
+    branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -23,10 +23,23 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Generate Gradle Wrapper
+      run: |
+        if [ ! -f "gradlew" ]; then
+          echo "Generating Gradle Wrapper..."
+          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-bin.zip" > gradle/wrapper/gradle-wrapper.properties
+          mkdir -p gradle/wrapper
+          curl -L https://github.com/gradle/gradle/raw/master/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
+          echo '#!/bin/sh' > gradlew
+          echo 'APP_HOME=$(dirname "$0")' >> gradlew
+          echo 'exec "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" "$@"' >> gradlew
+          chmod +x gradlew
+        fi
+
     - name: Build debug APK
       run: ./gradlew assembleDebug --no-daemon --max-workers=1
       env:
-        ORG_GRADLE_PROJECT_org.gradle.jvmargs: -Xmx1024m
+        ORG_GRADLE_PROJECT_org.gradle.jvmargs: -Xmx2048m
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
