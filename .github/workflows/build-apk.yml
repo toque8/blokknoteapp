@@ -1,116 +1,35 @@
-name: Build Debug APK
+name: Simple APK Build
 
-on:
-  workflow_dispatch:
+on: workflow_dispatch
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Debug project structure
-      run: |
-        echo "🔍 Текущая директория: $(pwd)"
-        echo "📁 Структура проекта:"
-        ls -la
-        echo ""
-        echo "📁 Содержимое app/:"
-        ls -la app/
-        echo ""
-        echo "📁 Содержимое app/src/:"
-        ls -la app/src/
-        echo ""
-        echo "📁 Поиск AndroidManifest.xml:"
-        find . -name AndroidManifest.xml
-        echo ""
-        echo "📁 Проверка существования манифеста:"
-        if [ -f "app/src/main/AndroidManifest.xml" ]; then
-          echo "✅ Файл существует"
-        else
-          echo "❌ Файл отсутствует"
-        fi
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
+    - uses: actions/checkout@v4
+      
+    - name: Setup Android
+      uses: android-actions/setup-android@v3
+      
+    - name: Setup Java
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-    
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-    
-    - name: Fix project structure if needed
-      run: |
-        # Если манифест находится в другом месте, переместим его
-        if [ ! -f "app/src/main/AndroidManifest.xml" ]; then
-          echo "🔧 Исправляем структуру проекта..."
-          
-          # Вариант 1: Если файл в корне app/
-          if [ -f "app/AndroidManifest.xml" ]; then
-            mkdir -p app/src/main
-            mv app/AndroidManifest.xml app/src/main/
-          fi
-          
-          # Вариант 2: Если файл в src/main/
-          if [ -f "src/main/AndroidManifest.xml" ]; then
-            mkdir -p app/src/main
-            mv src/main/AndroidManifest.xml app/src/main/
-          fi
-          
-          # Вариант 3: Если файл в app/main/
-          if [ -f "app/main/AndroidManifest.xml" ]; then
-            mkdir -p app/src/main
-            mv app/main/AndroidManifest.xml app/src/main/
-          fi
-          
-          # Создаем минимальную структуру, если ничего не найдено
-          if [ ! -f "app/src/main/AndroidManifest.xml" ]; then
-            echo "⚠️ Не найден AndroidManifest.xml, создаем минимальный..."
-            mkdir -p app/src/main
-            cat > app/src/main/AndroidManifest.xml <<EOF
-            <?xml version="1.0" encoding="utf-8"?>
-            <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-                package="space.blokknote">
-                <application
-                    android:allowBackup="true"
-                    android:label="@string/app_name"
-                    android:supportsRtl="true">
-                    <activity
-                        android:name=".MainActivity"
-                        android:exported="true">
-                        <intent-filter>
-                            <action android:name="android.intent.action.MAIN" />
-                            <category android:name="android.intent.category.LAUNCHER" />
-                        </intent-filter>
-                    </activity>
-                </application>
-            </manifest>
-            EOF
-          fi
-        fi
         
-        # Создаем директории ресурсов если их нет
-        mkdir -p app/src/main/res/values
-        if [ ! -f "app/src/main/res/values/strings.xml" ]; then
-          cat > app/src/main/res/values/strings.xml <<EOF
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <string name="app_name">Blokknote</string>
-          </resources>
-          EOF
-        fi
-
-    - name: Build debug APK
-      run: ./gradlew assembleDebug --no-daemon --max-workers=1
-      env:
-        TERM: dumb
-    
+    - name: Install Gradle
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gradle
+        
+    - name: Build APK
+      run: |
+        gradle --version
+        gradle :app:assembleDebug --stacktrace --no-daemon
+        
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: app-debug-apk
+        path: app/build/outputs/apk/debug/*.apk
