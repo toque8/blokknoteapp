@@ -15,8 +15,20 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     
-    - name: Build with Gradle
-      run: ./gradlew assembleDebug --no-daemon
+    - name: Install Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Build APK
+      run: |
+        echo "android.useAndroidX=true" > gradle.properties
+        echo "org.gradle.jvmargs=-Xmx2048m" >> gradle.properties
+        echo "include ':app'" > settings.gradle
+        echo "task clean(type: Delete) { delete rootProject.buildDir }" > build.gradle
+        
+        # Собираем с помощью системного gradle
+        gradle assembleDebug --no-daemon --max-workers=1
+      env:
+        TERM: dumb
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
