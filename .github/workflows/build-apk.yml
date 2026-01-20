@@ -21,70 +21,15 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
 
-    - name: Setup Gradle Wrapper
-      run: |
-        echo "Setting up Gradle Wrapper..."
-        
-        # Create directories
-        mkdir -p gradle/wrapper
-        
-        # Download and extract Gradle distribution
-        curl -L https://services.gradle.org/distributions/gradle-8.5-bin.zip -o gradle-8.5-bin.zip
-        unzip -q gradle-8.5-bin.zip -d /tmp/gradle
-        rm gradle-8.5-bin.zip
-        
-        # Copy gradle-wrapper.jar with CORRECT path
-        cp /tmp/gradle/gradle-8.5/lib/gradle-wrapper.jar gradle/wrapper/gradle-wrapper.jar
-        
-        # Create gradle-wrapper.properties with CORRECT settings
-        cat > gradle/wrapper/gradle-wrapper.properties <<EOF
-        distributionBase=GRADLE_USER_HOME
-        distributionPath=wrapper/dists
-        distributionUrl=https\\://services.gradle.org/distributions/gradle-8.5-bin.zip
-        distributionSha256Sum=b4b0ab6be8f4c5638f92c05ab0a89f5a243e043a296c593a89f5a8a06d7d8e9f
-        distributionPath=wrapper/dists
-        distributionZipStoreBase=GRADLE_USER_HOME
-        distributionZipStorePath=wrapper/dists
-        EOF
-        
-        # Create gradlew (Unix)
-        cat > gradlew <<EOF
-        #!/bin/sh
-        APP_HOME=\$(dirname "\$0")
-        CLASSPATH=\$APP_HOME/gradle/wrapper/gradle-wrapper.jar
-        exec java \$JAVA_OPTS -cp \$CLASSPATH org.gradle.wrapper.GradleWrapperMain "\$@"
-        EOF
-        
-        # Set executable permissions
-        chmod +x gradlew
-        
-        # Verify file creation
-        echo "Gradle Wrapper files created:"
-        ls -la gradlew
-        ls -la gradle/wrapper/
-        echo "gradle-wrapper.jar size:"
-        ls -lh gradle/wrapper/gradle-wrapper.jar
-
-    - name: Debug project structure
-      run: |
-        echo "Project structure:"
-        ls -la
-        echo ""
-        echo "Gradle wrapper directory:"
-        ls -la gradle/wrapper/
-        echo ""
-        echo "gradle-wrapper.properties content:"
-        cat gradle/wrapper/gradle-wrapper.properties
-        echo ""
-        echo "gradlew content:"
-        cat gradlew
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: 8.5
 
     - name: Build debug APK
-      run: ./gradlew assembleDebug --no-daemon --max-workers=1 --stacktrace
+      run: ./gradlew assembleDebug --no-daemon --max-workers=1
       env:
-        ORG_GRADLE_PROJECT_org.gradle.jvmargs: -Xmx2048m
         TERM: dumb
 
     - name: Upload APK
