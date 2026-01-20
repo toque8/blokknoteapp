@@ -1,56 +1,175 @@
-name: Build APK from KTS
+name: Build Debug APK
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      
-    - name: Setup Android
-      uses: android-actions/setup-android@v3
-      
-    - name: Setup Java
-      uses: actions/setup-java@v4
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
       with:
         java-version: '17'
         distribution: 'temurin'
-        
-    - name: Download and setup Gradle
+    
+    - name: Create Gradle wrapper and config files
       run: |
-        # Download Gradle
-        wget -q https://services.gradle.org/distributions/gradle-8.5-bin.zip
-        unzip -q gradle-8.5-bin.zip
-        export GRADLE_HOME=$PWD/gradle-8.5
-        export PATH=$GRADLE_HOME/bin:$PATH
+        # Create gradle wrapper
+        echo "Creating Gradle wrapper..."
+        mkdir -p gradle/wrapper
+        echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.5-bin.zip" > gradle/wrapper/gradle-wrapper.properties
+        curl -L https://github.com/gradle/gradle/raw/master/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
         
-        # Verify project structure
-        echo "Project structure:"
-        ls -la
-        echo "App directory:"
-        ls -la app/ || echo "No app directory"
+        # Create gradlew
+        cat > gradlew <<EOF
+        #!/bin/sh
+        APP_HOME=\$(dirname "\$0")
+        CLASSPATH=\$APP_HOME/gradle/wrapper/gradle-wrapper.jar
+        exec java \$JAVA_OPTS -cp \$CLASSPATH org.gradle.wrapper.GradleWrapperMain "\$@"
+        EOF
+        chmod +x gradlew
         
-        # Check build files
-        if [ -f "build.gradle.kts" ]; then
-          echo "Found build.gradle.kts"
+        # Create root build.gradle.kts
+        cat > build.gradle.kts <<EOF
+        buildscript {
+            repositories {
+                google()
+                mavenCentral()
+            }
+            dependencies {
+                classpath("com.android.tools.build:gradle:8.1.4")
+                classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22")
+                classpath("com.google.dagger:hilt-android-gradle-plugin:2.48")
+            }
+        }
+        
+        task("clean", type = Delete::class) {
+            delete(rootProject.buildDir)
+        }
+        EOF
+        
+        # Create settings.gradle.kts
+        cat > settings.gradle.kts <<EOF
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        rootProject.name = "Blokknote"
+        include(":app")
+        EOF
+        
+        # Update app/build.gradle.kts to fix Hilt plugin
+        echo "Fixing Hilt plugin configuration..."
+        if [ ! -f app/build.gradle.kts ]; then
+          mkdir -p app
+          echo "// Stub file to be replaced during build" > app/build.gradle.kts
         fi
-        if [ -f "app/build.gradle.kts" ]; then
-          echo "Found app/build.gradle.kts"
-        fi
         
-    - name: Build the APK
-      run: |
-        export PATH=$PWD/gradle-8.5/bin:$PATH
-        gradle :app:assembleDebug --stacktrace --no-daemon --info
+        cat > app/build.gradle.kts <<EOF
+        plugins {
+            id("com.android.application")
+            id("org.jetbrains.kotlin.android")
+            id("kotlin-kapt")
+            id("dagger.hilt.android.plugin")
+        }
         
-    - name: Upload built APK
+        android {
+            namespace = "space.blokknote"
+            compileSdk = 34
+        
+            defaultConfig {
+                applicationId = "space.blokknote"
+                minSdk = 26
+                targetSdk = 34
+                versionCode = 1
+                versionName = "1.0"
+        
+                testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+            }
+        
+            buildTypes {
+                release {
+                    isMinifyEnabled = false
+                    proguardFiles(
+                        getDefaultProguardFile("proguard-android-optimize.txt"),
+                        "proguard-rules.pro"
+                    )
+                }
+                debug {
+                    applicationIdSuffix = ".debug"
+                }
+            }
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
+            kotlinOptions {
+                jvmTarget = "17"
+            }
+            buildFeatures {
+                viewBinding = true
+            }
+        }
+        
+        dependencies {
+            // Core dependencies
+            implementation("androidx.core:core-ktx:1.12.0")
+            implementation("androidx.appcompat:appcompat:1.6.1")
+            implementation("com.google.android.material:material:1.10.0")
+            implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+            implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+        
+            // Hilt dependencies
+            implementation("com.google.dagger:hilt-android:2.48")
+            kapt("com.google.dagger:hilt-compiler:2.48")
+        
+            // Room dependencies
+            implementation("androidx.room:room-runtime:2.6.0")
+            implementation("androidx.room:room-ktx:2.6.0")
+            kapt("androidx.room:room-compiler:2.6.0")
+        
+            // RichEditor
+            implementation("jp.wasabeef:richeditor-android:2.0.0")
+        
+            // Testing dependencies
+            testImplementation("junit:junit:4.13.2")
+            androidTestImplementation("androidx.test.ext:junit:1.1.5")
+            androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+        }
+        EOF
+        
+        # Create gradle.properties
+        cat > gradle.properties <<EOF
+        org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+        android.useAndroidX=true
+        org.gradle.parallel=true
+        EOF
+        
+        # Create local.properties (required for SDK path)
+        echo "sdk.dir=/usr/local/lib/android/sdk" > local.properties
+        
+        echo "All Gradle files created successfully"
+    
+    - name: Build debug APK
+      run: ./gradlew assembleDebug --no-daemon --max-workers=1
+      env:
+        TERM: dumb
+    
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: apk-artifact
-        path: |
-          **/build/outputs/apk/**/*.apk
-          **/build/outputs/**/*.apk
-        retention-days: 7
+        name: app-debug
+        path: app/build/outputs/apk/debug/app-debug.apk
