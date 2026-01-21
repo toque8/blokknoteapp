@@ -5,22 +5,26 @@ import android.graphics.PorterDuff
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 class SplashActivity : AppCompatActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN
-        )
-        
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            hide(WindowInsetsControllerCompat.Type.statusBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+
         setContentView(R.layout.activity_splash)
         
         val splashIcon = findViewById<ImageView>(R.id.splash_icon)
@@ -28,9 +32,9 @@ class SplashActivity : AppCompatActivity() {
         val isDarkTheme = (resources.configuration.uiMode and 0x30) == 0x20
         
         val tintColor = if (isDarkTheme) {
-            ContextCompat.getColor(this, R.color.white) // Светлый карандаш в темной теме
+            ContextCompat.getColor(this, R.color.white)
         } else {
-            ContextCompat.getColor(this, R.color.primary) // Темный карандаш в светлой теме
+            ContextCompat.getColor(this, R.color.primary)
         }
         
         splashIcon.setColorFilter(tintColor, PorterDuff.Mode.SRC_IN)
