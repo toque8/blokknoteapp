@@ -116,20 +116,28 @@
 
     </LinearLayout>
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:padding="24dp"
+        android:background="@color/background">
 
-        <jp.wasabeef.richeditor.RichEditor
-            android:id="@+id/editor"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/background"
-            android:focusable="true"
-            android:focusableInTouchMode="true" />
+            android:layout_height="match_parent">
 
-    </FrameLayout>
+            <jp.wasabeef.richeditor.RichEditor
+                android:id="@+id/editor"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/background"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+
+        </FrameLayout>
+            
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
