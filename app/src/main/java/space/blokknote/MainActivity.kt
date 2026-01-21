@@ -129,12 +129,12 @@ class MainActivity : AppCompatActivity() {
         editor.isFocusable = true
         editor.isFocusableInTouchMode = true
 
-        editor.webView.webViewClient = object : android.webkit.WebViewClient() {
+        editor.setWebViewClient(object : android.webkit.WebViewClient() {
             override fun onPageFinished(view: android.webkit.WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 injectCustomStyles()
             }
-        }
+        })
 
         editor.setOnTextChangeListener { html ->
             soundManager.playTyping()
