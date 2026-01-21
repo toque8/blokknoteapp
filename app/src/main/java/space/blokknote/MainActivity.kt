@@ -393,7 +393,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showDownloadResult(uri: Uri, fileName: String) {
-        showToast("file_saved" + fileName)
+        val baseMsg = if (currentLanguage == "ru") "Файл сохранён: " else "File saved: "
+            showToast(baseMsg + fileName)
 
         try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -433,7 +434,7 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent.createChooser(shareIntent, if (currentLanguage == "ru") "Поделиться" else "Share"))
     }
 
-    private fun showToast(key: String) {
+    private fun showToast(message: String) {
         val message = when (key) {
             "add_text" -> if (currentLanguage == "ru") "Добавьте текст" else "Add text"
             "file_saved" -> if (currentLanguage == "ru") "Файл сохранён: " else "File saved: "
