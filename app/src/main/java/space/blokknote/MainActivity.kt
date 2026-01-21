@@ -71,6 +71,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Полноэкранный режим (остаётся)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, window.decorView).apply {
             hide(WindowInsetsCompat.Type.statusBars())
@@ -82,10 +83,10 @@ class MainActivity : AppCompatActivity() {
 
         initViews()
         setupListeners()
-        setupEditor()
-        loadLastNote()
+        loadLastNote()           
         updateLanguageUI()
         applyThemeColors()
+        setupEditor()            
     }
 
     private fun applyThemeColors() {
@@ -131,19 +132,11 @@ class MainActivity : AppCompatActivity() {
         editor.setEditorBackgroundColor(backgroundColor)
         editor.setEditorFontColor(fontColor)
         editor.setEditorFontSize(17)
-        editor.setPadding(5, 5, 5, 5)
         editor.setPlaceholder(getPlaceholderText())
         
         editor.isEnabled = true
         editor.isFocusable = true
         editor.isFocusableInTouchMode = true
-
-        editor.setWebViewClient(object : android.webkit.WebViewClient() {
-            override fun onPageFinished(view: android.webkit.WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                injectCustomStyles()
-            }
-        })
 
         editor.setOnTextChangeListener { html ->
             soundManager.playTyping()
@@ -152,6 +145,7 @@ class MainActivity : AppCompatActivity() {
         }
         
         editor.requestFocus()
+        injectCustomStyles() // ← Применяем стили ПОСЛЕ загрузки контента
     }
     
     private fun injectCustomStyles() {
@@ -159,36 +153,20 @@ class MainActivity : AppCompatActivity() {
             body {
                 background-color: $bgColorHex !important;
                 color: $textColorHex !important;
-                padding: 5px !important;
-                margin: 0 !important;
                 font-size: 17px !important;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
                 line-height: 1.5 !important;
-                -webkit-text-fill-color: $textColorHex !important;
             }
-            
             [placeholder]:empty:before {
                 content: attr(placeholder);
                 color: ${textColorHex}80 !important;
             }
         """.trimIndent().replace("\n", " ")
         
-        val js = """
-            (function() {
-                var existingStyle = document.getElementById('custom-theme-style');
-                if (existingStyle) existingStyle.remove();
-                
-                var style = document.createElement('style');
-                style.id = 'custom-theme-style';
-                style.textContent = '$css';
-                document.head.appendChild(style);
-                
-                document.body.style.backgroundColor = '$bgColorHex';
-                document.body.style.color = '$textColorHex';
-            })();
-        """.trimIndent()
-        
-        editor.evaluateJavascript(js, null)
+        editor.evaluateJavascript(
+            "(function() { var style = document.createElement('style'); style.textContent = '$css'; document.head.appendChild(style); })();",
+            null
+        )
     }
 
     private fun setupListeners() {
