@@ -5,6 +5,6 @@
     <color name="primary">#FFFFFFFF</color>
     <color name="secondary">#80FFFFFF</color>
     <color name="splash_background">#FF121212</color>
-    <color name="black">#FFFFFFFF</color>
-    <color name="white">#FF121212</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
 </resources>
