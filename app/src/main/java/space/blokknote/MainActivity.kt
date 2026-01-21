@@ -19,6 +19,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import jp.wasabeef.richeditor.RichEditor
@@ -27,7 +30,7 @@ import space.blokknote.data.AppDatabase
 import space.blokknote.data.Note
 import space.blokknote.utils.SoundManager
 import java.io.File
-import java.io.FileOutputStream
+ import java.io.FileOutputStream
 import java.nio.charset.Charset
 import javax.inject.Inject
 
@@ -68,6 +71,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Полноэкранный режим — скрываем статус-бар
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            hide(WindowInsetsCompat.Type.statusBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
