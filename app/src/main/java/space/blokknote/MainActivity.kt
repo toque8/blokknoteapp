@@ -79,10 +79,11 @@ class MainActivity : AppCompatActivity() {
 
         initViews()
         setupListeners()
+        loadLastNote()
         updateLanguageUI()
         applyThemeColors()
+
         setupEditor()
-        loadLastNote()
     }
 
     private fun applyThemeColors() {
@@ -127,11 +128,16 @@ class MainActivity : AppCompatActivity() {
         editor.setEditorFontSize(17)
         editor.setPadding(24, 24, 24, 24)
         editor.setPlaceholder(getPlaceholderText())
+
+        editor.setHtml("")
         
         editor.isEnabled = true
         editor.isFocusable = true
         editor.isFocusableInTouchMode = true
-        editor.requestFocus()
+
+        editor.post {
+            editor.requestFocus()
+        }
 
         editor.setOnTextChangeListener { html ->
             soundManager.playTyping()
@@ -247,8 +253,8 @@ class MainActivity : AppCompatActivity() {
                 currentLanguage = note.language ?: "ru"
                 editor.html = note.htmlContent ?: ""
                 history.add(editor.html)
+                btnCancel.visibility = View.VISIBLE
             }
-            btnCancel.visibility = View.VISIBLE
         }
     }
 
