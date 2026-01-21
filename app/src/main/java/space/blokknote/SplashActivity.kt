@@ -42,9 +42,10 @@ class SplashActivity : AppCompatActivity() {
         splashIcon.startAnimation(rotateAnimation)
         
         Handler(Looper.getMainLooper()).postDelayed({
+            splashIcon.clearAnimation()
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
             finish()
-        }, 2500)
+        }, 3000)
     }
 }
