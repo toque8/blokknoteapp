@@ -78,8 +78,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         initViews()
-        loadLastNote()           // ← СНАЧАЛА загружаем заметку
-        setupEditor()            // ← ПОТОМ настраиваем редактор
+        loadLastNote()           // ← Сначала грузим контент
+        setupEditor()            // ← Потом настраиваем редактор
         setupListeners()
         updateLanguageUI()
         applyThemeColors()
@@ -130,41 +130,13 @@ class MainActivity : AppCompatActivity() {
         editor.isEnabled = true
         editor.isFocusable = true
         editor.isFocusableInTouchMode = true
+        editor.requestFocus()
 
         editor.setOnTextChangeListener { html ->
             soundManager.playTyping()
             saveToHistory(html)
             saveNoteToDatabase(html)
         }
-        
-        editor.post {
-            applyEditorStyles()
-        }
-        
-        editor.requestFocus()
-    }
-    
-    private fun applyEditorStyles() {
-        val backgroundColor = ContextCompat.getColor(this, R.color.background)
-        val fontColor = ContextCompat.getColor(this, R.color.primary)
-
-        val hexBackground = String.format("#%06X", 0xFFFFFF and backgroundColor)
-        val hexFontColor = String.format("#%06X", 0xFFFFFF and fontColor)
-
-        val js = """
-            (function() {
-                document.body.style.backgroundColor = '$hexBackground';
-                document.body.style.color = '$hexFontColor';
-                document.body.style.padding = '16px';
-                document.body.style.margin = '0';
-                
-                var placeholderStyle = document.createElement('style');
-                placeholderStyle.textContent = '[placeholder]:empty:before { color: ${hexFontColor}80; }';
-                document.head.appendChild(placeholderStyle);
-            })();
-        """.trimIndent()
-        
-        editor.evaluateJavascript(js, null)
     }
 
     private fun setupListeners() {
@@ -237,9 +209,7 @@ class MainActivity : AppCompatActivity() {
             history.removeAt(history.size - 1)
             val previous = history.last()
             editor.html = previous
-            editor.post {
-                applyEditorStyles()
-            }
+            soundManager.playErase()
         }
     }
 
@@ -273,12 +243,9 @@ class MainActivity : AppCompatActivity() {
             if (notes.isNotEmpty() && currentNoteId == null) {
                 val note = notes.first()
                 currentNoteId = note.id
-                currentLanguage = note.language
-                editor.html = note.htmlContent
+                currentLanguage = note.language ?: "ru"
+                editor.html = note.htmlContent ?: ""
                 history.add(editor.html)
-                editor.post {
-                    applyEditorStyles()
-                }
             }
             btnCancel.visibility = View.VISIBLE
         }
@@ -289,9 +256,7 @@ class MainActivity : AppCompatActivity() {
         history.clear()
         history.add("")
         currentNoteId = null
-        editor.post {
-            applyEditorStyles()
-        }
+        soundManager.playErase()
     }
 
     private fun checkPermissionAndExport() {
