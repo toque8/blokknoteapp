@@ -31,7 +31,7 @@ android {
         }
         debug {
             isDebuggable = true
-            applicationIdSuffix = ".debug"  // ← КЛЮЧЕВОЕ ИЗМЕНЕНИЕ
+            applicationIdSuffix = ".debug"
             versionNameSuffix = "-DEBUG"
         }
     }
