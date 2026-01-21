@@ -291,8 +291,8 @@ class MainActivity : AppCompatActivity() {
             if (notes.isNotEmpty() && currentNoteId == null) {
                 val note = notes.first()
                 currentNoteId = note.id
-                currentLanguage = note.language ?: "ru"
-                editor.html = note.htmlContent ?: ""
+                currentLanguage = note.language
+                editor.html = note.htmlContent
                 history.add(editor.html)
                 updateLanguageUI()
             }
