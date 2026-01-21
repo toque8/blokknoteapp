@@ -30,7 +30,7 @@ import space.blokknote.data.AppDatabase
 import space.blokknote.data.Note
 import space.blokknote.utils.SoundManager
 import java.io.File
- import java.io.FileOutputStream
+import java.io.FileOutputStream
 import java.nio.charset.Charset
 import javax.inject.Inject
 
@@ -71,7 +71,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Полноэкранный режим — скрываем статус-бар
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, window.decorView).apply {
             hide(WindowInsetsCompat.Type.statusBars())
@@ -132,7 +131,7 @@ class MainActivity : AppCompatActivity() {
         editor.setEditorBackgroundColor(backgroundColor)
         editor.setEditorFontColor(fontColor)
         editor.setEditorFontSize(17)
-        editor.setPadding(24, 24, 24, 24)
+        editor.setPadding(5, 5, 5, 5)
         editor.setPlaceholder(getPlaceholderText())
         
         editor.isEnabled = true
@@ -160,16 +159,12 @@ class MainActivity : AppCompatActivity() {
             body {
                 background-color: $bgColorHex !important;
                 color: $textColorHex !important;
-                padding: 24px !important;
+                padding: 5px !important;
                 margin: 0 !important;
                 font-size: 17px !important;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
                 line-height: 1.5 !important;
                 -webkit-text-fill-color: $textColorHex !important;
-            }
-            
-            :root {
-                color-scheme: light !important;
             }
             
             [placeholder]:empty:before {
@@ -237,7 +232,6 @@ class MainActivity : AppCompatActivity() {
             soundManager.playErase()
             undo()
         }
-        pencilIcon.setOnClickListener { soundManager.playTyping() }
     }
 
     private fun setLanguage(lang: String) {
