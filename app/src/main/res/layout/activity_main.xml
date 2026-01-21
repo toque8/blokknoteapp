@@ -57,8 +57,7 @@
                 android:textSize="18sp"
                 android:padding="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:drawableBottom="@drawable/underline_indicator"
-                android:drawableTint="@color/primary" />
+                android:drawableBottom="@drawable/underline_indicator" />
 
             <TextView
                 android:id="@+id/btnHeading"
