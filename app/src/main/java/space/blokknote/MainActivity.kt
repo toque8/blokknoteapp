@@ -78,9 +78,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         initViews()
-        setupEditor()
+        loadLastNote()           // ← СНАЧАЛА загружаем заметку
+        setupEditor()            // ← ПОТОМ настраиваем редактор
         setupListeners()
-        loadLastNote()
         updateLanguageUI()
         applyThemeColors()
     }
@@ -148,29 +148,20 @@ class MainActivity : AppCompatActivity() {
         val backgroundColor = ContextCompat.getColor(this, R.color.background)
         val fontColor = ContextCompat.getColor(this, R.color.primary)
 
-        val hexBackground = String.format("#%08X", backgroundColor)
-        val hexFontColor = String.format("#%08X", fontColor)
+        val hexBackground = String.format("#%06X", 0xFFFFFF and backgroundColor)
+        val hexFontColor = String.format("#%06X", 0xFFFFFF and fontColor)
 
         val js = """
-            try {
-                var meta = document.querySelector('meta[name="color-scheme"]');
-                if (!meta) {
-                    meta = document.createElement('meta');
-                    meta.name = 'color-scheme';
-                    meta.content = 'light dark';
-                    document.head.appendChild(meta);
-                }
-                
+            (function() {
                 document.body.style.backgroundColor = '$hexBackground';
                 document.body.style.color = '$hexFontColor';
-                document.body.style.padding = '24px';
+                document.body.style.padding = '16px';
                 document.body.style.margin = '0';
-                document.body.style.colorScheme = 'light dark';
                 
-                var style = document.createElement('style');
-                style.textContent = '* { margin: 0; padding: 0; } p, h1, h2, h3, h4, h5, h6, ul, ol, li, div { padding-left: 24px; padding-right: 24px; } [placeholder]:empty:before { color: ${hexFontColor}80; padding-left: 24px; }';
-                document.head.appendChild(style);
-            } catch(e) {}
+                var placeholderStyle = document.createElement('style');
+                placeholderStyle.textContent = '[placeholder]:empty:before { color: ${hexFontColor}80; }';
+                document.head.appendChild(placeholderStyle);
+            })();
         """.trimIndent()
         
         editor.evaluateJavascript(js, null)
@@ -285,7 +276,6 @@ class MainActivity : AppCompatActivity() {
                 currentLanguage = note.language
                 editor.html = note.htmlContent
                 history.add(editor.html)
-                updateLanguageUI()
                 editor.post {
                     applyEditorStyles()
                 }
