@@ -56,9 +56,6 @@ class MainActivity : AppCompatActivity() {
     private var currentNoteId: String? = null
     private val history = mutableListOf<String>()
     private var currentLanguage = "ru"
-    
-    private var bgColorHex = "#FFFFFF"
-    private var textColorHex = "#000000"
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -71,7 +68,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Полноэкранный режим (остаётся)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, window.decorView).apply {
             hide(WindowInsetsCompat.Type.statusBars())
@@ -82,11 +78,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         initViews()
+        setupEditor()
         setupListeners()
-        loadLastNote()           
+        loadLastNote()
         updateLanguageUI()
         applyThemeColors()
-        setupEditor()            
     }
 
     private fun applyThemeColors() {
@@ -125,9 +121,6 @@ class MainActivity : AppCompatActivity() {
     private fun setupEditor() {
         val backgroundColor = ContextCompat.getColor(this, R.color.background)
         val fontColor = ContextCompat.getColor(this, R.color.primary)
-        
-        bgColorHex = String.format("#%06X", 0xFFFFFF and backgroundColor)
-        textColorHex = String.format("#%06X", 0xFFFFFF and fontColor)
 
         editor.setEditorBackgroundColor(backgroundColor)
         editor.setEditorFontColor(fontColor)
@@ -144,29 +137,43 @@ class MainActivity : AppCompatActivity() {
             saveNoteToDatabase(html)
         }
         
+        editor.post {
+            applyEditorStyles()
+        }
+        
         editor.requestFocus()
-        injectCustomStyles() // ← Применяем стили ПОСЛЕ загрузки контента
     }
     
-    private fun injectCustomStyles() {
-        val css = """
-            body {
-                background-color: $bgColorHex !important;
-                color: $textColorHex !important;
-                font-size: 17px !important;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-                line-height: 1.5 !important;
-            }
-            [placeholder]:empty:before {
-                content: attr(placeholder);
-                color: ${textColorHex}80 !important;
-            }
-        """.trimIndent().replace("\n", " ")
+    private fun applyEditorStyles() {
+        val backgroundColor = ContextCompat.getColor(this, R.color.background)
+        val fontColor = ContextCompat.getColor(this, R.color.primary)
+
+        val hexBackground = String.format("#%08X", backgroundColor)
+        val hexFontColor = String.format("#%08X", fontColor)
+
+        val js = """
+            try {
+                var meta = document.querySelector('meta[name="color-scheme"]');
+                if (!meta) {
+                    meta = document.createElement('meta');
+                    meta.name = 'color-scheme';
+                    meta.content = 'light dark';
+                    document.head.appendChild(meta);
+                }
+                
+                document.body.style.backgroundColor = '$hexBackground';
+                document.body.style.color = '$hexFontColor';
+                document.body.style.padding = '24px';
+                document.body.style.margin = '0';
+                document.body.style.colorScheme = 'light dark';
+                
+                var style = document.createElement('style');
+                style.textContent = '* { margin: 0; padding: 0; } p, h1, h2, h3, h4, h5, h6, ul, ol, li, div { padding-left: 24px; padding-right: 24px; } [placeholder]:empty:before { color: ${hexFontColor}80; padding-left: 24px; }';
+                document.head.appendChild(style);
+            } catch(e) {}
+        """.trimIndent()
         
-        editor.evaluateJavascript(
-            "(function() { var style = document.createElement('style'); style.textContent = '$css'; document.head.appendChild(style); })();",
-            null
-        )
+        editor.evaluateJavascript(js, null)
     }
 
     private fun setupListeners() {
@@ -239,7 +246,9 @@ class MainActivity : AppCompatActivity() {
             history.removeAt(history.size - 1)
             val previous = history.last()
             editor.html = previous
-            injectCustomStyles()
+            editor.post {
+                applyEditorStyles()
+            }
         }
     }
 
@@ -277,6 +286,9 @@ class MainActivity : AppCompatActivity() {
                 editor.html = note.htmlContent
                 history.add(editor.html)
                 updateLanguageUI()
+                editor.post {
+                    applyEditorStyles()
+                }
             }
             btnCancel.visibility = View.VISIBLE
         }
@@ -287,7 +299,9 @@ class MainActivity : AppCompatActivity() {
         history.clear()
         history.add("")
         currentNoteId = null
-        injectCustomStyles()
+        editor.post {
+            applyEditorStyles()
+        }
     }
 
     private fun checkPermissionAndExport() {
