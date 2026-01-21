@@ -78,11 +78,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         initViews()
-        loadLastNote()           // ← Сначала грузим контент
-        setupEditor()            // ← Потом настраиваем редактор
-        setupListeners()
-        updateLanguageUI()
-        applyThemeColors()
+
+        editor.post {
+            loadLastNote()           
+            setupEditor()            
+            setupListeners()
+            updateLanguageUI()
+            applyThemeColors()
+        }
     }
 
     private fun applyThemeColors() {
