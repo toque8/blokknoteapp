@@ -2,6 +2,7 @@ package space.blokknote.utils
 
 import android.content.Context
 import android.media.MediaPlayer
+import space.blokknote.R
 import java.util.concurrent.ConcurrentLinkedQueue
 import javax.inject.Inject
 import javax.inject.Singleton
