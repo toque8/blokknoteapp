@@ -11,8 +11,6 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.text.TextUtils
 import android.view.View
-import android.webkit.WebSettings
-import android.webkit.WebViewClient
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -30,7 +28,6 @@ import space.blokknote.data.Note
 import space.blokknote.utils.SoundManager
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 import java.nio.charset.Charset
 import javax.inject.Inject
 
@@ -66,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         if (isGranted) {
             exportToDoc()
         } else {
-            showToast("permission_required")
+            showToast(if (currentLanguage == "ru") "Разрешение необходимо для сохранения файлов" else "Permission required to save files")
         }
     }
 
@@ -122,8 +119,6 @@ class MainActivity : AppCompatActivity() {
         bgColorHex = String.format("#%06X", 0xFFFFFF and backgroundColor)
         textColorHex = String.format("#%06X", 0xFFFFFF and fontColor)
 
-        disableWebViewDarkMode()
-
         editor.setEditorBackgroundColor(backgroundColor)
         editor.setEditorFontColor(fontColor)
         editor.setEditorFontSize(17)
@@ -134,7 +129,7 @@ class MainActivity : AppCompatActivity() {
         editor.isFocusable = true
         editor.isFocusableInTouchMode = true
 
-        editor.webView.webViewClient = object : WebViewClient() {
+        editor.webView.webViewClient = object : android.webkit.WebViewClient() {
             override fun onPageFinished(view: android.webkit.WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 injectCustomStyles()
@@ -150,23 +145,6 @@ class MainActivity : AppCompatActivity() {
         editor.requestFocus()
     }
     
-    private fun disableWebViewDarkMode() {
-        try {
-            val settings = editor.webView.settings
-            
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                settings.isAlgorithmicDarkeningAllowed = false
-            }
-            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                @Suppress("DEPRECATION")
-                settings.forceDark = WebSettings.FORCE_DARK_OFF
-            }
-            
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-    
     private fun injectCustomStyles() {
         val css = """
             body {
@@ -180,7 +158,7 @@ class MainActivity : AppCompatActivity() {
                 -webkit-text-fill-color: $textColorHex !important;
             }
             
-            {
+            :root {
                 color-scheme: light !important;
             }
             
@@ -279,7 +257,6 @@ class MainActivity : AppCompatActivity() {
             history.removeAt(history.size - 1)
             val previous = history.last()
             editor.html = previous
-            // Переприменяем стили после изменения контента
             injectCustomStyles()
         }
     }
@@ -348,13 +325,13 @@ class MainActivity : AppCompatActivity() {
     private fun exportToDoc() {
         val htmlContent = editor.html
         if (TextUtils.isEmpty(htmlContent)) {
-            showToast("add_text")
+            showToast(if (currentLanguage == "ru") "Добавьте текст" else "Add text")
             return
         }
 
         val content = android.text.Html.fromHtml(htmlContent, android.text.Html.FROM_HTML_MODE_COMPACT).toString().trim { it <= ' ' }
         if (content.isEmpty()) {
-            showToast("add_text")
+            showToast(if (currentLanguage == "ru") "Добавьте текст" else "Add text")
             return
         }
 
@@ -374,7 +351,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     showDownloadResult(uri, fileName)
                 } else {
-                    throw IOException("Не удалось создать URI")
+                    throw java.io.IOException("Не удалось создать URI")
                 }
             } else {
                 val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
@@ -387,14 +364,14 @@ class MainActivity : AppCompatActivity() {
                 showDownloadResult(uri, fileName)
             }
         } catch (e: Exception) {
-            showToast("save_error")
+            showToast(if (currentLanguage == "ru") "Ошибка сохранения" else "Save error")
             e.printStackTrace()
         }
     }
 
     private fun showDownloadResult(uri: Uri, fileName: String) {
-        val baseMsg = if (currentLanguage == "ru") "Файл сохранён: " else "File saved: "
-            showToast(baseMsg + fileName)
+        val msg = (if (currentLanguage == "ru") "Файл сохранён: " else "File saved: ") + fileName
+        showToast(msg)
 
         try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -404,14 +381,14 @@ class MainActivity : AppCompatActivity() {
             }
             startActivity(Intent.createChooser(intent, if (currentLanguage == "ru") "Открыть" else "Open"))
         } catch (e: Exception) {
-            showToast("file_saved_fallback")
+            showToast(if (currentLanguage == "ru") "Файл сохранён в папке Downloads" else "File saved to Downloads folder")
         }
     }
 
     private fun shareNote() {
         val htmlContent = editor.html
         if (TextUtils.isEmpty(htmlContent)) {
-            showToast("add_text")
+            showToast(if (currentLanguage == "ru") "Добавьте текст" else "Add text")
             return
         }
 
@@ -421,7 +398,7 @@ class MainActivity : AppCompatActivity() {
         ).toString().trim { it <= ' ' }
 
         if (textContent.isEmpty()) {
-            showToast("add_text")
+            showToast(if (currentLanguage == "ru") "Добавьте текст" else "Add text")
             return
         }
 
@@ -435,14 +412,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showToast(message: String) {
-        val message = when (key) {
-            "add_text" -> if (currentLanguage == "ru") "Добавьте текст" else "Add text"
-            "file_saved" -> if (currentLanguage == "ru") "Файл сохранён: " else "File saved: "
-            "file_saved_fallback" -> if (currentLanguage == "ru") "Файл сохранён в папке Downloads" else "File saved to Downloads folder"
-            "save_error" -> if (currentLanguage == "ru") "Ошибка сохранения" else "Save error"
-            "permission_required" -> if (currentLanguage == "ru") "Разрешение необходимо для сохранения файлов" else "Permission required to save files"
-            else -> key
-        }
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
