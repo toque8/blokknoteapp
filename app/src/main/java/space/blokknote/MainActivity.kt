@@ -57,7 +57,6 @@ class MainActivity : AppCompatActivity() {
     private val history = mutableListOf<String>()
     private var currentLanguage = "ru"
     
-    // Цвета для темы — кэшируем для переиспользования
     private var bgColorHex = "#FFFFFF"
     private var textColorHex = "#000000"
 
@@ -120,25 +119,21 @@ class MainActivity : AppCompatActivity() {
         val backgroundColor = ContextCompat.getColor(this, R.color.background)
         val fontColor = ContextCompat.getColor(this, R.color.primary)
         
-        // Конвертируем цвета в HEX без кавычек
         bgColorHex = String.format("#%06X", 0xFFFFFF and backgroundColor)
         textColorHex = String.format("#%06X", 0xFFFFFF and fontColor)
 
-        // Отключаем автоматическую тёмную тему WebView для ВСЕХ версий Android
         disableWebViewDarkMode()
 
-        // Базовые настройки редактора
         editor.setEditorBackgroundColor(backgroundColor)
         editor.setEditorFontColor(fontColor)
         editor.setEditorFontSize(17)
-        editor.setPadding(24, 24, 24, 24)  // Отступы через метод RichEditor
+        editor.setPadding(24, 24, 24, 24)
         editor.setPlaceholder(getPlaceholderText())
         
         editor.isEnabled = true
         editor.isFocusable = true
         editor.isFocusableInTouchMode = true
 
-        // Устанавливаем WebViewClient для применения стилей после загрузки страницы
         editor.webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: android.webkit.WebView?, url: String?) {
                 super.onPageFinished(view, url)
@@ -155,34 +150,24 @@ class MainActivity : AppCompatActivity() {
         editor.requestFocus()
     }
     
-    /**
-     * Отключает автоматическую тёмную тему для WebView на всех версиях Android
-     */
     private fun disableWebViewDarkMode() {
         try {
             val settings = editor.webView.settings
             
-            // Android 13+ (API 33): используем setAlgorithmicDarkeningAllowed
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 settings.isAlgorithmicDarkeningAllowed = false
             }
-            // Android 10-12 (API 29-32): используем setForceDark
             else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 @Suppress("DEPRECATION")
                 settings.forceDark = WebSettings.FORCE_DARK_OFF
             }
-            // Ниже Android 10: WebView не применяет автоматическую тёмную тему
             
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
     
-    /**
-     * Инжектирует CSS стили в редактор для корректного отображения
-     */
     private fun injectCustomStyles() {
-        // Валидный CSS без лишних кавычек и с правильным селектором body
         val css = """
             body {
                 background-color: $bgColorHex !important;
@@ -195,12 +180,10 @@ class MainActivity : AppCompatActivity() {
                 -webkit-text-fill-color: $textColorHex !important;
             }
             
-            /* Убираем тёмные стили, которые могут применяться системой */
-            * {
+            {
                 color-scheme: light !important;
             }
             
-            /* Стили для placeholder */
             [placeholder]:empty:before {
                 content: attr(placeholder);
                 color: ${textColorHex}80 !important;
@@ -335,7 +318,6 @@ class MainActivity : AppCompatActivity() {
                 editor.html = note.htmlContent ?: ""
                 history.add(editor.html)
                 updateLanguageUI()
-                // Стили применятся автоматически через WebViewClient.onPageFinished
             }
             btnCancel.visibility = View.VISIBLE
         }
@@ -346,7 +328,6 @@ class MainActivity : AppCompatActivity() {
         history.clear()
         history.add("")
         currentNoteId = null
-        // Переприменяем стили после очистки
         injectCustomStyles()
     }
 
