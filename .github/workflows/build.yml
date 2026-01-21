@@ -36,8 +36,6 @@ jobs:
     
     - name: Build debug APK
       run: ./gradlew assembleDebug --no-daemon --stacktrace
-      env:
-        ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
