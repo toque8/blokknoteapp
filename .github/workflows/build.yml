@@ -2,8 +2,6 @@ name: Build Debug APK
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main, master ]
 
 jobs:
   build:
@@ -19,24 +17,9 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     
-    # Скачиваем gradle-wrapper.jar если его нет
-    - name: Download Gradle Wrapper
-      run: |
-        mkdir -p gradle/wrapper
-        if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
-          echo "Downloading gradle-wrapper.jar..."
-          curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
-        fi
-        chmod +x gradlew
-    
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-version: '8.4'
-    
     - name: Build debug APK
       run: ./gradlew assembleDebug --no-daemon --stacktrace
-    
+
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
