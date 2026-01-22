@@ -52,13 +52,11 @@
                 android:id="@+id/btnUnderline"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="g"
+                android:text="_"
                 android:textColor="@color/primary"
                 android:textSize="18sp"
                 android:padding="8dp"
-                android:paddingBottom="12dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:drawableBottom="@drawable/underline_indicator" />
+                android:background="?attr/selectableItemBackgroundBorderless" />
 
             <TextView
                 android:id="@+id/btnHeading"
