@@ -32,9 +32,6 @@ import space.blokknote.utils.SoundManager
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.charset.Charset
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -59,7 +56,6 @@ class MainActivity : AppCompatActivity() {
     private var currentNoteId: String? = null
     private val history = mutableListOf<String>()
     private var currentLanguage = "ru"
-    private var isHeadingActive = false
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -171,16 +167,8 @@ class MainActivity : AppCompatActivity() {
         btnUnderline.setOnClickListener { 
             editor.setUnderline()
         }
-        btnHeading.setOnClickListener {
-            try {
-                if (isHeadingActive) {
-                    editor.setNormal()
-                } else {
-                    editor.setHeading(3)
-                }
-                isHeadingActive = !isHeadingActive
-            } catch (e: Exception) {
-            }
+        btnHeading.setOnClickListener { 
+            editor.setHeading(3)
         }
         btnList.setOnClickListener { 
             editor.setBullets()
@@ -281,7 +269,6 @@ class MainActivity : AppCompatActivity() {
     private fun clearNote() {
         editor.html = ""
         currentNoteId = null
-        isHeadingActive = false
         soundManager.playErase()
     }
 
