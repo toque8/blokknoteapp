@@ -71,7 +71,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
     // Rich Text Editor
-    implementation("jp.wasabeef:richeditor-android:2.0.1")
+    implementation("jp.wasabeef:richeditor-android:1.2.2")
     implementation("androidx.webkit:webkit:1.8.0")
 
     // Testing
