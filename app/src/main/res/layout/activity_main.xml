@@ -9,8 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
+        android:padding="16dp">
 
         <ImageView
             android:id="@+id/pencilIcon"
@@ -32,7 +31,7 @@
                 android:layout_height="wrap_content"
                 android:text="e"
                 android:textColor="@color/primary"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:padding="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless" />
@@ -43,7 +42,7 @@
                 android:layout_height="wrap_content"
                 android:text="f"
                 android:textColor="@color/primary"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="italic"
                 android:padding="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless" />
@@ -54,7 +53,7 @@
                 android:layout_height="wrap_content"
                 android:text="_"
                 android:textColor="@color/primary"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:padding="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -64,10 +63,9 @@
                 android:layout_height="wrap_content"
                 android:text="h3"
                 android:textColor="@color/primary"
-                android:textSize="18sp"
+                android:textSize="14sp"
                 android:padding="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:gravity="center_vertical" />
+                android:background="?attr/selectableItemBackgroundBorderless" />
 
             <TextView
                 android:id="@+id/btnList"
@@ -75,7 +73,7 @@
                 android:layout_height="wrap_content"
                 android:text="i-j-k"
                 android:textColor="@color/primary"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:padding="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -85,8 +83,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginStart="8dp">
+            android:gravity="center_vertical">
 
             <TextView
                 android:id="@+id/langRu"
@@ -94,7 +91,7 @@
                 android:layout_height="wrap_content"
                 android:text="RU"
                 android:textColor="@color/primary"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:padding="4dp"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -104,9 +101,9 @@
                 android:layout_height="wrap_content"
                 android:text="EN"
                 android:textColor="@color/primary"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:padding="4dp"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="-8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:alpha="0.5" />
 
@@ -114,59 +111,52 @@
 
     </LinearLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#22000000"
+        android:alpha="0.1" />
+
     <jp.wasabeef.richeditor.RichEditor
         android:id="@+id/editor"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:minHeight="200dp"
         android:background="@color/background"
+        android:padding="24dp"
         android:focusable="true"
         android:focusableInTouchMode="true" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="60dp"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:padding="18dp"
         android:gravity="center">
 
         <ImageView
             android:id="@+id/btnCancel"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
             android:src="@drawable/ic_undo"
+            android:layout_marginEnd="24dp"
             android:background="?attr/selectableItemBackgroundBorderless" />
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
 
         <ImageView
             android:id="@+id/btnClear"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:src="@drawable/ic_erase"
+            android:layout_marginEnd="24dp"
             android:background="?attr/selectableItemBackgroundBorderless" />
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
 
         <ImageView
             android:id="@+id/btnDownload"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:src="@drawable/ic_download"
+            android:layout_marginEnd="24dp"
             android:background="?attr/selectableItemBackgroundBorderless" />
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
 
         <ImageView
             android:id="@+id/btnShare"
