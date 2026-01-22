@@ -160,23 +160,18 @@ class MainActivity : AppCompatActivity() {
     private fun setupListeners() {
         btnBold.setOnClickListener { 
             editor.setBold()
-            soundManager.playTyping()
         }
         btnItalic.setOnClickListener { 
             editor.setItalic()
-            soundManager.playTyping()
         }
         btnUnderline.setOnClickListener { 
             editor.setUnderline()
-            soundManager.playTyping()
         }
         btnHeading.setOnClickListener { 
             editor.setHeading(3)
-            soundManager.playTyping()
         }
         btnList.setOnClickListener { 
             editor.setBullets()
-            soundManager.playTyping()
         }
         
         langRu.setOnClickListener { setLanguage("ru") }
