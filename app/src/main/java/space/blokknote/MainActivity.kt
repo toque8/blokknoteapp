@@ -32,6 +32,9 @@ import space.blokknote.utils.SoundManager
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.charset.Charset
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -56,6 +59,7 @@ class MainActivity : AppCompatActivity() {
     private var currentNoteId: String? = null
     private val history = mutableListOf<String>()
     private var currentLanguage = "ru"
+    private var isHeadingActive = false
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -167,8 +171,16 @@ class MainActivity : AppCompatActivity() {
         btnUnderline.setOnClickListener { 
             editor.setUnderline()
         }
-        btnHeading.setOnClickListener { 
-            editor.setHeading(3)
+        btnHeading.setOnClickListener {
+            try {
+                if (isHeadingActive) {
+                    editor.setNormal()
+                } else {
+                    editor.setHeading(3)
+                }
+                isHeadingActive = !isHeadingActive
+            } catch (e: Exception) {
+            }
         }
         btnList.setOnClickListener { 
             editor.setBullets()
@@ -179,7 +191,8 @@ class MainActivity : AppCompatActivity() {
         
         btnClear.setOnClickListener { 
             soundManager.playErase()
-            clearNote() 
+            saveToHistory(editor.html)
+            clearNote()
         }
         btnDownload.setOnClickListener { 
             soundManager.playDownload()
@@ -267,9 +280,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun clearNote() {
         editor.html = ""
-        history.clear()
-        history.add("")
         currentNoteId = null
+        isHeadingActive = false
         soundManager.playErase()
     }
 
@@ -294,7 +306,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val content = android.text.Html.fromHtml(htmlContent, android.text.Html.FROM_HTML_MODE_COMPACT).toString().trim { it <= ' ' }
+        val content = android.text.Html.fromHtml(htmlContent, android.text.Html.FROM_HTML_MODE_COMPACT).toString().trim()
         if (content.isEmpty()) {
             showToast(if (currentLanguage == "ru") "Добавьте текст" else "Add text")
             return
@@ -308,6 +320,7 @@ class MainActivity : AppCompatActivity() {
                 val contentValues = ContentValues().apply {
                     put(MediaStore.Downloads.DISPLAY_NAME, fileName)
                     put(MediaStore.Downloads.MIME_TYPE, "text/plain")
+                    put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
                 }
                 val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
                 if (uri != null) {
@@ -316,7 +329,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     showDownloadResult(uri, fileName)
                 } else {
-                    throw java.io.IOException("Не удалось создать URI")
+                    throw Exception("Не удалось создать URI")
                 }
             } else {
                 val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
@@ -330,7 +343,6 @@ class MainActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             showToast(if (currentLanguage == "ru") "Ошибка сохранения" else "Save error")
-            e.printStackTrace()
         }
     }
 
@@ -357,10 +369,10 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        val textContent = android.text.Html.fromHtml(
-            htmlContent,
-            android.text.Html.FROM_HTML_MODE_COMPACT
-        ).toString().trim { it <= ' ' }
+        val textContent = android.text.Html.fromHtml(htmlContent, android.text.Html.FROM_HTML_MODE_COMPACT)
+            .toString()
+            .replace("\\s+".toRegex(), " ")
+            .trim()
 
         if (textContent.isEmpty()) {
             showToast(if (currentLanguage == "ru") "Добавьте текст" else "Add text")
@@ -370,7 +382,7 @@ class MainActivity : AppCompatActivity() {
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, textContent)
-            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 
         startActivity(Intent.createChooser(shareIntent, if (currentLanguage == "ru") "Поделиться" else "Share"))
