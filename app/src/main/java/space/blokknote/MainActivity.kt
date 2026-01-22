@@ -68,18 +68,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, window.decorView).apply {
             hide(WindowInsetsCompat.Type.statusBars())
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
-        super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         initViews()
         setupListeners()
-        loadLastNote()
         updateLanguageUI()
         applyThemeColors()
 
@@ -129,8 +129,10 @@ class MainActivity : AppCompatActivity() {
         editor.setPadding(24, 24, 24, 24)
         editor.setPlaceholder(getPlaceholderText())
 
-        editor.setHtml("")
-        
+        editor.settings.javaScriptEnabled = true
+        editor.settings.domStorageEnabled = true
+        editor.settings.allowFileAccess = true
+
         editor.isEnabled = true
         editor.isFocusable = true
         editor.isFocusableInTouchMode = true
@@ -144,6 +146,16 @@ class MainActivity : AppCompatActivity() {
             saveToHistory(html)
             saveNoteToDatabase(html)
         }
+
+        editor.setOnInitialLoadListener { isReady ->
+            if (isReady) {
+                lifecycleScope.launch {
+                    loadLastNoteContent()
+                }
+            }
+        }
+
+        editor.setHtml("")
     }
 
     private fun setupListeners() {
@@ -243,7 +255,7 @@ class MainActivity : AppCompatActivity() {
         saveNoteToDatabase(editor.html)
     }
 
-    private fun loadLastNote() {
+    private fun loadLastNoteContent() {
         lifecycleScope.launch {
             val database = AppDatabase.getDatabase(this@MainActivity)
             val notes = database.noteDao().getAllNotesSorted()
@@ -254,6 +266,7 @@ class MainActivity : AppCompatActivity() {
                 editor.html = note.htmlContent ?: ""
                 history.add(editor.html)
                 btnCancel.visibility = View.VISIBLE
+                updateLanguageUI()
             }
         }
     }
