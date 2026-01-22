@@ -132,7 +132,8 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="18dp"
-        android:gravity="center">
+        android:gravity="center"
+        android:layout_gravity="bottom">
 
         <ImageView
             android:id="@+id/btnCancel"
