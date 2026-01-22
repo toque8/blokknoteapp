@@ -72,6 +72,7 @@ dependencies {
 
     // Rich Text Editor
     implementation("jp.wasabeef:richeditor-android:2.0.0")
+    implementation("androidx.webkit:webkit:1.8.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
