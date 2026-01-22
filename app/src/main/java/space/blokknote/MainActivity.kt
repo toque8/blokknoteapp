@@ -126,7 +126,6 @@ class MainActivity : AppCompatActivity() {
         editor.setEditorBackgroundColor(backgroundColor)
         editor.setEditorFontColor(fontColor)
         editor.setEditorFontSize(17)
-        editor.setPadding(24, 24, 24, 24)
         editor.setPlaceholder(getPlaceholderText())
 
         editor.settings.javaScriptEnabled = true
