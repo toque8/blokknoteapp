@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         if (isGranted) {
             exportToDoc()
         } else {
-            showToast(if (currentLanguage == "ru") "Разрешение необходимо для сохранения файлов" else "Permission required to save files")
+            showToast(if (currentLanguage == "ru") "Необходимо разрешение для сохранения файлов" else "Required permission to save files")
         }
     }
 
@@ -184,7 +184,7 @@ class MainActivity : AppCompatActivity() {
         }
         btnDownload.setOnClickListener { 
             soundManager.playDownload()
-            checkPermissionAndExport()
+            exportToDoc()
         }
         btnShare.setOnClickListener { 
             soundManager.playDownload()
@@ -272,20 +272,6 @@ class MainActivity : AppCompatActivity() {
         soundManager.playErase()
     }
 
-    private fun checkPermissionAndExport() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            exportToDoc()
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                exportToDoc()
-            } else {
-                requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            }
-        } else {
-            exportToDoc()
-        }
-    }
-
     private fun exportToDoc() {
         val htmlContent = editor.html
         if (TextUtils.isEmpty(htmlContent)) {
@@ -302,32 +288,16 @@ class MainActivity : AppCompatActivity() {
         val fileName = "blokknote.txt"
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val resolver = contentResolver
-                val contentValues = ContentValues().apply {
-                    put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-                    put(MediaStore.Downloads.MIME_TYPE, "text/plain")
-                    put(MediaStore.Downloads.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/")
-                }
-                val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-                if (uri != null) {
-                    contentResolver.openOutputStream(uri)?.use { stream ->
-                        stream.write(content.toByteArray(Charset.forName("UTF-8")))
-                    }
-                    showDownloadResult(uri, fileName)
-                } else {
-                    throw Exception("Не удалось создать URI")
-                }
-            } else {
-                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                if (!downloadsDir.exists()) downloadsDir.mkdirs()
-                val file = File(downloadsDir, fileName)
-                FileOutputStream(file).use { output ->
-                    output.write(content.toByteArray(Charset.forName("UTF-8")))
-                }
-                val uri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", file)
-                showDownloadResult(uri, fileName)
+            val dir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+            if (dir == null) {
+                throw Exception("Не удалось получить директорию для сохранения")
             }
+            val file = File(dir, fileName)
+            FileOutputStream(file).use { output ->
+                output.write(content.toByteArray(Charset.forName("UTF-8")))
+            }
+            val uri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", file)
+            showDownloadResult(uri, fileName)
         } catch (e: Exception) {
             showToast(if (currentLanguage == "ru") "Ошибка сохранения" else "Save error")
         }
@@ -345,7 +315,7 @@ class MainActivity : AppCompatActivity() {
             }
             startActivity(Intent.createChooser(intent, if (currentLanguage == "ru") "Открыть" else "Open"))
         } catch (e: Exception) {
-            showToast(if (currentLanguage == "ru") "Файл сохранён в папке Downloads" else "File saved to Downloads folder")
+            showToast(if (currentLanguage == "ru") "Файл сохранён в папке приложения" else "File saved in app folder")
         }
     }
 
