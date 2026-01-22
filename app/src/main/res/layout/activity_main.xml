@@ -5,6 +5,7 @@
     android:orientation="vertical"
     android:background="@color/background">
 
+    <!-- Верхняя панель (не трогаем - работает) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -127,43 +128,61 @@
         android:focusable="true"
         android:focusableInTouchMode="true" />
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#22000000"
+        android:alpha="0.1" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="18dp"
-        android:gravity="center"
-        android:layout_gravity="bottom">
+        android:padding="18dp">
 
         <ImageView
             android:id="@+id/btnCancel"
             android:layout_width="34dp"
             android:layout_height="34dp"
             android:src="@drawable/ic_undo"
-            android:layout_marginEnd="24dp"
+            android:layout_gravity="start"
             android:background="?attr/selectableItemBackgroundBorderless" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
 
         <ImageView
             android:id="@+id/btnClear"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:src="@drawable/ic_erase"
-            android:layout_marginEnd="24dp"
             android:background="?attr/selectableItemBackgroundBorderless" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
 
         <ImageView
             android:id="@+id/btnDownload"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:src="@drawable/ic_download"
-            android:layout_marginEnd="24dp"
             android:background="?attr/selectableItemBackgroundBorderless" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
 
         <ImageView
             android:id="@+id/btnShare"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:src="@drawable/ic_share"
+            android:layout_gravity="end"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
     </LinearLayout>
