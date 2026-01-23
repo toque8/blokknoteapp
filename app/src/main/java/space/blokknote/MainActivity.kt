@@ -12,7 +12,7 @@ import android.provider.MediaStore
 import android.text.TextUtils
 import android.view.View
 import android.widget.ImageView
- import android.widget.TextView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -57,11 +57,12 @@ class MainActivity : AppCompatActivity() {
     private val history = mutableListOf<String>()
     private var currentLanguage = "ru"
 
+    private var lastTypingSoundTime = 0L
+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            // Этот блок больше не используется, но оставлен на случай будущих изменений
             showToast(if (currentLanguage == "ru") "Необходимо разрешение для сохранения файлов" else "Required permission to save files")
         }
     }
@@ -71,7 +72,7 @@ class MainActivity : AppCompatActivity() {
     ) { uri ->
         if (uri != null) {
             saveContentToUri(uri)
-            showToast(if (currentLanguage == "ru") "Файл сохранён" else "File saved")
+            showToast(if (currentLanguage == "ru") "Файл сохранён в Downloads" else "File saved to Downloads")
         } else {
             showToast(if (currentLanguage == "ru") "Сохранение отменено" else "Save canceled")
         }
@@ -153,12 +154,10 @@ class MainActivity : AppCompatActivity() {
         editor.setOnTextChangeListener { html ->
             saveToHistory(html)
             saveNoteToDatabase(html)
+            playTypingSoundThrottled()
         }
 
-        editor.setOnKeyListener { _, _, _ ->
-            soundManager.playTyping()
-            false
-        }
+        editor.setOnKeyListener { _, _, _ -> false }
 
         editor.setOnInitialLoadListener { isReady ->
             if (isReady) {
@@ -172,26 +171,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        btnBold.setOnClickListener { 
-            soundManager.playTyping()
-            editor.setBold()
-        }
-        btnItalic.setOnClickListener { 
-            soundManager.playTyping()
-            editor.setItalic()
-        }
-        btnUnderline.setOnClickListener { 
-            soundManager.playTyping()
-            editor.setUnderline()
-        }
-        btnHeading.setOnClickListener { 
-            soundManager.playTyping()
-            editor.setHeading(3)
-        }
-        btnList.setOnClickListener { 
-            soundManager.playTyping()
-            editor.setBullets()
-        }
+        btnBold.setOnClickListener { editor.setBold() }
+        btnItalic.setOnClickListener { editor.setItalic() }
+        btnUnderline.setOnClickListener { editor.setUnderline() }
+        btnHeading.setOnClickListener { editor.setHeading(3) }
+        btnList.setOnClickListener { editor.setBullets() }
         
         langRu.setOnClickListener { setLanguage("ru") }
         langEn.setOnClickListener { setLanguage("en") }
@@ -212,6 +196,14 @@ class MainActivity : AppCompatActivity() {
         btnCancel.setOnClickListener { 
             soundManager.playErase()
             undo()
+        }
+    }
+
+    private fun playTypingSoundThrottled() {
+        val now = System.currentTimeMillis()
+        if (now - lastTypingSoundTime > 50) {
+            soundManager.playTyping()
+            lastTypingSoundTime = now
         }
     }
 
