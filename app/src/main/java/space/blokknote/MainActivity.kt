@@ -12,7 +12,7 @@ import android.provider.MediaStore
 import android.text.TextUtils
 import android.view.View
 import android.widget.ImageView
-import android.widget.TextView
+ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -61,9 +61,19 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            exportToDoc()
-        } else {
+            // Этот блок больше не используется, но оставлен на случай будущих изменений
             showToast(if (currentLanguage == "ru") "Необходимо разрешение для сохранения файлов" else "Required permission to save files")
+        }
+    }
+
+    private val createDocumentLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain")
+    ) { uri ->
+        if (uri != null) {
+            saveContentToUri(uri)
+            showToast(if (currentLanguage == "ru") "Файл сохранён" else "File saved")
+        } else {
+            showToast(if (currentLanguage == "ru") "Сохранение отменено" else "Save canceled")
         }
     }
 
@@ -193,7 +203,7 @@ class MainActivity : AppCompatActivity() {
         }
         btnDownload.setOnClickListener { 
             soundManager.playDownload()
-            exportToDoc()
+            createDocumentLauncher.launch("blokknote.txt")
         }
         btnShare.setOnClickListener { 
             soundManager.playDownload()
@@ -281,68 +291,25 @@ class MainActivity : AppCompatActivity() {
         soundManager.playErase()
     }
 
-    private fun exportToDoc() {
-        val htmlContent = editor.html
-        if (TextUtils.isEmpty(htmlContent)) {
-            showToast(if (currentLanguage == "ru") "Добавьте текст" else "Add text")
-            return
-        }
-
-        val content = android.text.Html.fromHtml(htmlContent, android.text.Html.FROM_HTML_MODE_COMPACT).toString().trim()
-        if (content.isEmpty()) {
-            showToast(if (currentLanguage == "ru") "Добавьте текст" else "Add text")
-            return
-        }
-
-        val fileName = "blokknote.txt"
-
+    private fun saveContentToUri(uri: Uri) {
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val resolver = contentResolver
-                val contentValues = ContentValues().apply {
-                    put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-                    put(MediaStore.Downloads.MIME_TYPE, "text/plain")
-                    put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/")
-                }
-                val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-                if (uri != null) {
-                    resolver.openOutputStream(uri)?.use { stream ->
-                        stream.write(content.toByteArray(Charset.forName("UTF-8")))
-                    }
-                    showDownloadResult(uri, fileName)
-                } else {
-                    throw Exception("Не удалось создать URI")
-                }
-            } else {
-                val dir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
-                if (dir == null) {
-                    throw Exception("Не удалось получить директорию для сохранения")
-                }
-                val file = File(dir, fileName)
-                FileOutputStream(file).use { output ->
-                    output.write(content.toByteArray(Charset.forName("UTF-8")))
-                }
-                val uri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", file)
-                showDownloadResult(uri, fileName)
+            val htmlContent = editor.html
+            if (TextUtils.isEmpty(htmlContent)) {
+                showToast(if (currentLanguage == "ru") "Добавьте текст" else "Add text")
+                return
+            }
+
+            val content = android.text.Html.fromHtml(htmlContent, android.text.Html.FROM_HTML_MODE_COMPACT).toString().trim()
+            if (content.isEmpty()) {
+                showToast(if (currentLanguage == "ru") "Добавьте текст" else "Add text")
+                return
+            }
+
+            contentResolver.openOutputStream(uri)?.use { stream ->
+                stream.write(content.toByteArray(Charset.forName("UTF-8")))
             }
         } catch (e: Exception) {
             showToast(if (currentLanguage == "ru") "Ошибка сохранения" else "Save error")
-        }
-    }
-
-    private fun showDownloadResult(uri: Uri, fileName: String) {
-        val msg = (if (currentLanguage == "ru") "Файл сохранён: " else "File saved: ") + fileName
-        showToast(msg)
-
-        try {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, "text/plain")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            startActivity(Intent.createChooser(intent, if (currentLanguage == "ru") "Открыть" else "Open"))
-        } catch (e: Exception) {
-            showToast(if (currentLanguage == "ru") "Файл сохранён в папке приложения" else "File saved in app folder")
         }
     }
 
