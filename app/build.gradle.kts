@@ -23,9 +23,6 @@ android {
     buildTypes {
         debug {
             isDebuggable = true
-            // УБРАНЫ ВСЕ СУФФИКСЫ
-            // applicationIdSuffix = ".debug"
-            // versionNameSuffix = "-DEBUG"
         }
     }
 
