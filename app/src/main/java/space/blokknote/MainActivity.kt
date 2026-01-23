@@ -141,9 +141,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         editor.setOnTextChangeListener { html ->
-            soundManager.playTyping()
             saveToHistory(html)
             saveNoteToDatabase(html)
+        }
+
+        editor.setOnKeyListener { _, _, _ ->
+            soundManager.playTyping()
+            false
         }
 
         editor.setOnInitialLoadListener { isReady ->
@@ -159,18 +163,23 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         btnBold.setOnClickListener { 
+            soundManager.playTyping()
             editor.setBold()
         }
         btnItalic.setOnClickListener { 
+            soundManager.playTyping()
             editor.setItalic()
         }
         btnUnderline.setOnClickListener { 
+            soundManager.playTyping()
             editor.setUnderline()
         }
         btnHeading.setOnClickListener { 
+            soundManager.playTyping()
             editor.setHeading(3)
         }
         btnList.setOnClickListener { 
+            soundManager.playTyping()
             editor.setBullets()
         }
         
