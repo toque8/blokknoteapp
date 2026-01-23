@@ -297,16 +297,34 @@ class MainActivity : AppCompatActivity() {
         val fileName = "blokknote.txt"
 
         try {
-            val dir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
-            if (dir == null) {
-                throw Exception("Не удалось получить директорию для сохранения")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val resolver = contentResolver
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                    put(MediaStore.Downloads.MIME_TYPE, "text/plain")
+                    put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/")
+                }
+                val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                if (uri != null) {
+                    resolver.openOutputStream(uri)?.use { stream ->
+                        stream.write(content.toByteArray(Charset.forName("UTF-8")))
+                    }
+                    showDownloadResult(uri, fileName)
+                } else {
+                    throw Exception("Не удалось создать URI")
+                }
+            } else {
+                val dir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+                if (dir == null) {
+                    throw Exception("Не удалось получить директорию для сохранения")
+                }
+                val file = File(dir, fileName)
+                FileOutputStream(file).use { output ->
+                    output.write(content.toByteArray(Charset.forName("UTF-8")))
+                }
+                val uri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", file)
+                showDownloadResult(uri, fileName)
             }
-            val file = File(dir, fileName)
-            FileOutputStream(file).use { output ->
-                output.write(content.toByteArray(Charset.forName("UTF-8")))
-            }
-            val uri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", file)
-            showDownloadResult(uri, fileName)
         } catch (e: Exception) {
             showToast(if (currentLanguage == "ru") "Ошибка сохранения" else "Save error")
         }
