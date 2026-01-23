@@ -9,8 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
+        android:padding="16dp">
 
         <ImageView
             android:id="@+id/pencilIcon"
@@ -105,19 +104,13 @@
                 android:textColor="@color/primary"
                 android:textSize="16sp"
                 android:padding="8dp"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="4dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:alpha="0.5" />
 
         </LinearLayout>
 
     </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#22000000"
-        android:alpha="0.1" />
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -135,12 +128,6 @@
 
     </FrameLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#22000000"
-        android:alpha="0.1" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -154,7 +141,7 @@
             android:layout_width="34dp"
             android:layout_height="34dp"
             android:src="@drawable/ic_undo"
-            android:layout_marginEnd="50dp"
+            android:layout_marginEnd="48dp"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
         <ImageView
@@ -162,7 +149,7 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:src="@drawable/ic_erase"
-            android:layout_marginEnd="50dp"
+            android:layout_marginEnd="48dp"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
         <ImageView
@@ -170,7 +157,7 @@
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:src="@drawable/ic_download"
-            android:layout_marginEnd="50dp"
+            android:layout_marginEnd="48dp"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
         <ImageView
