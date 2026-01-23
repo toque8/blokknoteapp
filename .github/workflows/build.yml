@@ -40,8 +40,8 @@ jobs:
           -keyalg RSA \
           -keysize 2048 \
           -validity 10000 \
-          -storepass lifelifelife \
-          -keypass lifelifelife \
+          -storepass blokknote26 \
+          -keypass blokknote26 \
           -dname "CN=Max Loon, OU=Developer, O=Blokknote, L=NY, ST=NY, C=US"
 
     - name: Build release APK
