@@ -23,9 +23,9 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("../release.keystore")
-            storePassword = "blokknote2026"
+            storePassword = "blokknote26"
             keyAlias = "blokknote"
-            keyPassword = "blokknote2026"
+            keyPassword = "blokknote26"
         }
     }
 
