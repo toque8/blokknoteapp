@@ -1,4 +1,4 @@
-name: Build Release APK
+name: Build Debug APK
 
 on:
   workflow_dispatch:
@@ -31,25 +31,12 @@ jobs:
       with:
         gradle-version: '8.4'
     
-    - name: Generate release keystore
-      run: |
-         keytool -genkeypair -v \
-          -storetype PKCS12 \
-          -keystore release.keystore \
-          -alias blokknote \
-          -keyalg RSA \
-          -keysize 2048 \
-          -validity 10000 \
-          -storepass blokknote26 \
-          -keypass blokknote26 \
-          -dname "CN=Max Loon, OU=Developer, O=Blokknote, L=NY, ST=NY, C=US"
-
-    - name: Build release APK
-      run: ./gradlew assembleRelease --no-daemon --stacktrace
+    - name: Build debug APK
+      run: ./gradlew assembleDebug --no-daemon --stacktrace
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-release
-        path: app/build/outputs/apk/release/app-release.apk
+        name: app-debug
+        path: app/build/outputs/apk/debug/app-debug.apk
         if-no-files-found: error
