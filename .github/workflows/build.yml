@@ -1,4 +1,4 @@
-name: Build Debug APK
+name: Build Release APK
 
 on:
   workflow_dispatch:
@@ -17,7 +17,6 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     
-    # Скачиваем gradle-wrapper.jar если его нет
     - name: Download Gradle Wrapper
       run: |
         mkdir -p gradle/wrapper
@@ -32,12 +31,25 @@ jobs:
       with:
         gradle-version: '8.4'
     
-    - name: Build debug APK
-      run: ./gradlew assembleDebug --no-daemon --stacktrace
+    - name: Generate release keystore
+      run: |
+         keytool -genkeypair -v \
+          -storetype PKCS12 \
+          -keystore release.keystore \
+          -alias blokknote \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000 \
+          -storepass lifelifelife \
+          -keypass lifelifelife \
+          -dname "CN=Max Loon, OU=Developer, O=Blokknote, L=NY, ST=NY, C=US"
+
+    - name: Build release APK
+      run: ./gradlew assembleRelease --no-daemon --stacktrace
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        path: app/build/outputs/apk/debug/app-debug.apk
+        name: app-release
+        path: app/build/outputs/apk/release/app-release.apk
         if-no-files-found: error
