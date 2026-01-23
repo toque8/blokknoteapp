@@ -58,7 +58,6 @@ class MainActivity : AppCompatActivity() {
     private var currentLanguage = "ru"
 
     private var lastTypingSoundTime = 0L
-    private var lastFormatSoundTime = 0L
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -174,15 +173,15 @@ class MainActivity : AppCompatActivity() {
     private fun setupListeners() {
         btnBold.setOnClickListener { 
             editor.setBold()
-            playFormatSound()
+            playTypingSoundThrottled()
         }
         btnItalic.setOnClickListener { 
             editor.setItalic()
-            playFormatSound()
+            playTypingSoundThrottled()
         }
         btnUnderline.setOnClickListener { 
             editor.setUnderline()
-            playFormatSound()
+            playTypingSoundThrottled()
         }
         btnHeading.setOnClickListener { editor.setHeading(3) }
         btnList.setOnClickListener { editor.setBullets() }
@@ -214,14 +213,6 @@ class MainActivity : AppCompatActivity() {
         if (now - lastTypingSoundTime > 50) {
             soundManager.playTyping()
             lastTypingSoundTime = now
-        }
-    }
-
-    private fun playFormatSound() {
-        val now = System.currentTimeMillis()
-        if (now - lastFormatSoundTime > 100) {
-            soundManager.playTyping()
-            lastFormatSoundTime = now
         }
     }
 
