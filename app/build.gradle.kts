@@ -20,29 +20,12 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
 
-    signingConfigs {
-        create("release") {
-            storeFile = file("../release.keystore")
-            storePassword = "blokknote26"
-            keyAlias = "blokknote"
-            keyPassword = "blokknote26"
-        }
-    }
-
     buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
         debug {
             isDebuggable = true
-            applicationIdSuffix = ".debug"
-            versionNameSuffix = "-DEBUG"
+            // УБРАНЫ ВСЕ СУФФИКСЫ
+            // applicationIdSuffix = ".debug"
+            // versionNameSuffix = "-DEBUG"
         }
     }
 
